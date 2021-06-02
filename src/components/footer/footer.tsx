@@ -8,10 +8,7 @@ export default (): ReactElement => (
         <div className="col-sm-12 col-md-6">
           <h6>About</h6>
           <p className="text-justify">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi dui
-            massa, fermentum sed purus a, molestie egestas leo. Quisque
-            fringilla velit nibh, et vestibulum nunc tincidunt quis. Nam
-            efficitur luctus nisi sit amet varius.
+            .
           </p>
         </div>
       </div>

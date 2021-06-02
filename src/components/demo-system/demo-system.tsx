@@ -85,7 +85,7 @@ export default (): ReactElement => {
   return (
     <div className="systems">
       <div className="row">
-        <h3>DummyDesktopApp1</h3>
+        <h3>DummyDesktopApp</h3>
       </div>
       <div className="seperator" />
       {rows}

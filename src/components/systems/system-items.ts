@@ -6,7 +6,7 @@ export default [
     numOfsubscriptions: 15,
   },
   {
-    name: 'DummyDesktopApp1',
+    name: 'DummyDesktopApp',
     id: '6dad108e-21e9-4b68-8ba0-0b28ffd299bd',
     recentAlert: true,
     numOfsubscriptions: 3,

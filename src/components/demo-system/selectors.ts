@@ -4,13 +4,13 @@ export default [
     content: '/Window[@ClassName=\\"Window\\"][@Name=\\"Some Desktop Application\\"]/Button[@ClassName=\\"Button\\"][@Name=\\"Errors Suck!\\"]',
     recentAlert: true,
     alerts: ['02.06.2021', '16.05.2021'],
-    subscriptions: ['bot2', 'bot3']
+    subscriptions: ['venus', 'jupiter']
   },
   {
     id: '30420b59-7e77-481c-8722-3d518ff8bd45',
     content: '/Window[@ClassName=\\"Window\\"][@Name=\\"Some Desktop Application\\"]\\"',
     recentAlert: false,
     alerts: [ '22.05.2021'],
-    subscriptions: ['bot1']
+    subscriptions: ['neptune']
   },
 ];
