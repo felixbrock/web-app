@@ -1,0 +1,61 @@
+.column {
+  float: left;
+  width: 50%;
+  padding: 0 5px;
+}
+
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px;
+  }
+}
+
+.row {
+  margin: 0 -5px;
+}
+
+.seperator{
+  border-top: 1px solid #000;
+  vertical-align: middle;
+  margin: 5px;
+}
+
+.row:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.not-recent {
+  height: 15px;
+  width: 100%;
+  background-color: #50f69b;
+}
+
+.recent {
+  height: 15px;
+  width: 100%;
+  background-color: #fb7171;
+}
+
+.recent-warning {
+  height: 15px;
+  width: 100%;
+  background-color: #F8D84E;
+}
+
+.subscription .alert .target{
+  text-align: center;
+  border: 1px solid;
+  margin: 5px;
+}
+
+.card {
+  text-align: center;
+  border: 3px solid;
+  background-color: #dfdfdf;
+  background-image: linear-gradient(#dfdfdf, #ffffff);
+  margin: 3px;
+}

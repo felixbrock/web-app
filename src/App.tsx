@@ -1,26 +1,28 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { ReactElement } from 'react';
+import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
+import TopNav from './components/topnav/topnav';
+import Subscriptions from './components/subscriptions/subscriptions';
+import Systems from './components/systems/systems';
+import DemoSystem from './components/demo-system/demo-system';
+import Footer from './components/footer/footer';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reloadxxxx.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
-
-export default App;
+export default (): ReactElement => (
+  <div className="App">
+    <Router>
+      <div>
+        <TopNav />
+        <Switch>
+          <Route exact component={Systems} path="/systems" />
+          <Route exact component={Subscriptions} path="/automations" />
+          <Route
+            exact
+            component={DemoSystem}
+            path="/systems/6dad108e-21e9-4b68-8ba0-0b28ffd299bd"
+          />
+        </Switch>
+        <Footer />
+      </div>
+    </Router>
+  </div>
+);

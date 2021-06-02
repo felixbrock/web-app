@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+// import TopNav from './components/topnav/topnav';
+// import Systems from './components/systems/systems';
+// import Footer from './components/footer/footer';
 
 ReactDOM.render(
   <React.StrictMode>
