@@ -4,7 +4,7 @@ import TopNav from './components/topnav/topnav';
 import Subscriptions from './components/subscriptions/subscriptions';
 import Systems from './components/systems/systems';
 import DemoSystem from './components/demo-system/demo-system';
-import Footer from './components/footer/footer';
+// import Footer from './components/footer/footer';
 import './App.css';
 
 export default (): ReactElement => (
@@ -21,7 +21,7 @@ export default (): ReactElement => (
             path="/systems/6dad108e-21e9-4b68-8ba0-0b28ffd299bd"
           />
         </Switch>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </Router>
   </div>

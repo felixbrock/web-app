@@ -17,7 +17,7 @@ export default [
     ],
     warnings: [
       {
-        date: '02.06.2021',
+        date: '10.06.2021',
         message:
           'An error occurred in system DummyDesktopApp on a selector. Your automation might be affected.',
       },
@@ -41,7 +41,7 @@ export default [
     ],
     alerts: [
       {
-        date: '02.06.2021',
+        date: '10.06.2021',
         message:
           'An error occurred on selector e65453cd-49be-44ca-a15c-31a763222397 in system DummyDesktopApp.',
       },
@@ -72,7 +72,7 @@ export default [
     ],
     alerts: [
       {
-        date: '02.06.2021',
+        date: '10.06.2021',
         message:
           'An error occurred on selector e65453cd-49be-44ca-a15c-31a763222397 in system DummyDesktopApp.',
       },
