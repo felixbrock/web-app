@@ -1,14 +1,19 @@
-.topnav {
+.logo{
+  height: 20px;
+  width: 20px;
+}
+
+/* .top-nav {
   display: flex;
   border-bottom: 3px solid;
 }
 
-.topnav > * {
+.top-nav > * {
   float: left;
   text-align: center;
 }
 
-.topnav > img {
+.top-nav > img {
   width: 60px;
   height: 60px;
   animation: rotation 40s infinite linear;
@@ -53,4 +58,4 @@
   to {
     transform: rotate(359deg);
   }
-}
+} */
