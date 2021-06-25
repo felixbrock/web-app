@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react';
 import SampleSystems from './sample-systems';
 import SystemComponent from '../../components/system/system';
-import { Systems , SystemColumn, SystemRow } from './systems-items';
+import { Systems , SystemColumn, SystemRow, FloatingButton, IconAdd } from './systems-items';
 
 function createRow(cards: ReactElement[]): ReactElement {
   return <SystemRow>{cards}</SystemRow>;
@@ -36,5 +36,6 @@ export default (): ReactElement => {
     cards = [];
   }
 
-  return <Systems>{rows}</Systems>;
+  return (<Systems>{rows}<FloatingButton><IconAdd/></FloatingButton></Systems>
+    );
 };

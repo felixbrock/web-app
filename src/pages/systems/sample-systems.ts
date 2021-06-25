@@ -3,7 +3,7 @@ export default [
     name: 'Word',
     id: '0841fd90-b372-4421-802d-4de909f8f950',
     hasMissedAlert: true,
-    missedAlerts: 3,
+    missedAlerts: 21,
     numberOfSubscriptions: 15,
   },
   {

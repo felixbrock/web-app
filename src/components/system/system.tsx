@@ -167,11 +167,12 @@ const testValues = {
   options: {
     colors: ['#423CFF'],
     chart: {
+      background: '#333333',
       toolbar: {
         show: false,
       },
     },
-    theme: {mode: 'light'},
+    theme: {mode: 'dark'},
     grid: { show: false },
     stroke: {
       colors: ['#333333'],
@@ -184,6 +185,7 @@ const testValues = {
     xaxis: {
       labels: {
         style: {
+          fontSize: '12px',
           colors: ['#7f7f7f', '#7f7f7f', '#7f7f7f', '#7f7f7f'],
         },
       },
@@ -197,6 +199,7 @@ const testValues = {
     yaxis: {
       labels: {
         style: {
+          fontSize: '12px',
           colors: [
             '#7f7f7f',
             '#7f7f7f',
