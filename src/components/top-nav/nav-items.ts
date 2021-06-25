@@ -1,31 +1,9 @@
-// import SystemsNavItem from './nav-item-systems.png';
-// import AutomationsNavItem from './nav-item-automations.png';
-
-
-// export default [
-//   {
-//     id: 'c6f8057d-d6ef-4808-bd3f-ca317302851f',
-//     title: 'Systems',
-//     img: SystemsNavItem,
-//     url: '/systems',
-//     cName: 'nav-link'
-//   },
-//   {
-//     id: '255a4364-0db6-45eb-a0f3-164741b6cba0',
-//     title: 'Automations',
-//     img: AutomationsNavItem,
-//     url: '/automations',
-//     cName: 'nav-link'
-//   }
-// ];
-
 import { FaBars } from 'react-icons/fa';
 import { NavLink as Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 export const Nav = styled.nav`
   background: #000;
-  height: 80px;
   display: flex;
   justify-content: space-between;
   padding: 0.5rem calc((100vw - 1000px) / 2);
@@ -45,7 +23,7 @@ export const NavLink = styled(Link)`
   cursor: pointer;
 
   &.active {
-    color: #15cdfc;
+    color: #423CFF;
   }
 `;
 
@@ -97,7 +75,7 @@ export const NavBtn = styled.nav`
 
 export const NavBtnLink = styled(Link)`
   border-radius: 4px;
-  background: #256ce1;
+  background: #423CFF;
   padding: 10px 22px;
   color: #fff;
   outline: none;

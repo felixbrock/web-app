@@ -6,33 +6,39 @@ import TopNav from './components/top-nav/top-nav';
 // import DemoSystem from './components/demo-system/demo-system';
 // import Footer from './components/footer/footer';
 import './App.css';
-import Home from './pages';
 import Systems from './pages/systems/systems';
 import Selectors from './pages/selectors/selectors';
 import Automations from './pages/automations/automations';
 import Analytics from './pages/analytics/analytics';
 import SignIn from './pages/sign-in/sign-in';
+import Footer from './components/footer/footer';
+import {
+  HeaderContainer,
+  ContentContainer,
+  FooterContainer,
+  App,
+} from './App-Items';
 
 export default (): ReactElement => (
   <div className="App">
-    <Router>
-      <TopNav />
-      <Switch>
-        {/* <Route exact component={Systems} path="/systems" />
-          <Route exact component={Subscriptions} path="/automations" />
-          <Route
-            exact
-            component={DemoSystem}
-            path="/systems/6dad108e-21e9-4b68-8ba0-0b28ffd299bd"
-          /> */}
-        <Route path="/" exact component={Home} />
-        <Route path="/systems" component={Systems} />
-        <Route path="/selectors" component={Selectors} />
-        <Route path="/automations" component={Automations} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/sign-in" component={SignIn} />
-      </Switch>
-      {/* <Footer /> */}
-    </Router>
+    <App>
+      <Router>
+        <HeaderContainer>
+          <TopNav />
+        </HeaderContainer>
+        <ContentContainer>
+          <Switch>
+            <Route path="/systems" component={Systems} />
+            <Route path="/selectors" component={Selectors} />
+            <Route path="/automations" component={Automations} />
+            <Route path="/analytics" component={Analytics} />
+            <Route path="/sign-in" component={SignIn} />
+          </Switch>
+        </ContentContainer>
+        <FooterContainer>
+          <Footer />
+        </FooterContainer>
+      </Router>
+    </App>
   </div>
 );
