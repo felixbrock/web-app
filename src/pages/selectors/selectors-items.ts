@@ -1,13 +1,13 @@
 import styled from 'styled-components';
 import { FaPlus } from 'react-icons/fa';
 
-export const Systems = styled.div``;
+export const Selectors = styled.div``;
 
-export const SystemRow = styled.div`
+export const SelectorRow = styled.div`
   margin: 0 -5px;
 `;
 
-export const SystemColumn = styled.div`
+export const SelectorColumn = styled.div`
   float: left;
   width: 25%;
   padding: 0 5px;
@@ -39,17 +39,4 @@ export const FloatingButton = styled.button`
 
 export const IconAdd = styled(FaPlus)`
   vertical-align: middle;
-`;
-
-export const InputText = styled.input`
-width: 100%;
-margin: 10px;
-background-color: #bbbbbb;
-color: #333333;
-border: none;
-border-radius: 3px;
-`;
-
-export const FieldLabel = styled.p`
-margin-left: 10px;
 `;

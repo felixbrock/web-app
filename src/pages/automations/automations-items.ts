@@ -1,13 +1,13 @@
 import styled from 'styled-components';
 import { FaPlus } from 'react-icons/fa';
 
-export const Systems = styled.div``;
+export const Automations = styled.div``;
 
-export const SystemRow = styled.div`
+export const AutomationRow = styled.div`
   margin: 0 -5px;
 `;
 
-export const SystemColumn = styled.div`
+export const AutomationColumn = styled.div`
   float: left;
   width: 25%;
   padding: 0 5px;

@@ -1,38 +1,52 @@
 import styled from 'styled-components';
-import { FaRegCopy, FaEllipsisV} from 'react-icons/fa';
+import { FaRegCopy, FaEllipsisV } from 'react-icons/fa';
 
-
-export const System = styled.div`
+export const Selector = styled.div`
   text-align: center;
   border: 1px solid #333333;
   margin: 3px;
   background-color: #333333;
 `;
 
-const SystemRow = styled.div`
+const SelectorRow = styled.div`
   display: flex;
   justify-content: space-between;
   vertical-align: middle;
   margin: 10px;
 `;
 
-export const Header = styled(SystemRow)``;
+export const Header = styled(SelectorRow)``;
 
-export const MissedAlertBubble = styled.span`
+export const MissedAlertBubble = styled.button`
   width: 20px;
   height: 20px;
-  line-height: 20px;
+  line-height: 9pt;
   border-radius: 50%;
   font-size: 9pt;
+  padding: 1px;
   color: #fff;
   text-align: center;
   background: #fd0304;
+
+  border: 0px;
+
+  &:active {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  &:hover {
+    color: #000;
+    background-color: #2c25ff;
+    text-decoration: none;
+    cursor: pointer;
+  }
 `;
 
 export const Title = styled.div`
   color: #bbbbbb;
   font-size: 12pt;
-  text-decoration: underline;
 `;
 
 export const OptionsIcon = styled(FaEllipsisV)`
@@ -40,7 +54,7 @@ export const OptionsIcon = styled(FaEllipsisV)`
   vertical-align: middle;
 `;
 
-export const IdInfo = styled(SystemRow)``;
+export const IdInfo = styled(SelectorRow)``;
 
 export const Text = styled.div`
   color: #7f7f7f;
@@ -59,12 +73,18 @@ export const Subtitle = styled.div`
 
 export const AlertMap = styled.div`
   display: inline-block;
-  height: 30%;
+  width: 70%;
   padding: 0px;
 
   @media screen and (max-width: 1000px) {
-    height: 30%
+    width: 60%;
   }
 `;
 
-export const Footer = styled(SystemRow)`margin: 10px`;
+export const Footer = styled(SelectorRow)`
+  margin: 10px;
+`;
+
+export const Subscribe = styled.div`
+  font-size: 9pt;
+`;

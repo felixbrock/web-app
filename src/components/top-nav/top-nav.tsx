@@ -7,7 +7,7 @@ import {
   NavBtn,
   NavBtnLink
 } from './nav-items';
-import Logo from './hivedive.png';
+import Logo from './hivedive180.svg';
 
 export default (): ReactElement => (
       <Nav>
@@ -22,8 +22,8 @@ export default (): ReactElement => (
           <NavLink to='/automations'>
             Automations
           </NavLink>
-          <NavLink to='/analytics'>
-            Analytics
+          <NavLink to='/historical-data'>
+            Historical Data
           </NavLink>
           {/* Second Nav */}
           {/* <NavBtnLink to='/sign-in'>Sign In</NavBtnLink> */}
