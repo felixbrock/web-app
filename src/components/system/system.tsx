@@ -9,23 +9,23 @@ import {
   IdInfo,
   Text,
   // CopyIdIcon,
-  AlertMap,
-  Subtitle,
+  // AlertMap,
+  // Subtitle,
   Footer,
+  StatsIcon,
 } from './system-items';
-import Heatmap from '../heatmap/heatmap';
+// import { Heatmap } from '../heatmap/heatmap';
 import Button from '../button/button';
 import Label from '../label/label';
-import SampleData from '../heatmap/sample-heatmap-data';
 
 export default (
   id: string,
   title: string,
-  hasMissedAlerts: boolean,
   missedAlerts: number,
-  subscriptionNumber: number,
-  onSubscribersClick: (state: boolean) => void,
-  onOptionsClick: (state: boolean) => void,
+  setSystemIdState: (systemId: string) => void,
+  setSubscribersState: (state: boolean) => void,
+  setOptionsState: (state: boolean) => void,
+  setAlertOverviewState: (state: boolean) => void
 ): ReactElement => {
   const history = useHistory();
 
@@ -33,13 +33,22 @@ export default (
     history.push(`/system/${id}`);
   }
 
-  const handleSubscribersClick = () => onSubscribersClick(true);
-  const handleOptionsClick = () => onOptionsClick(true);
-
+  const handleSubscribersClick = () => {
+    setSystemIdState(id);
+    setSubscribersState(true);
+  };
+  const handleOptionsClick = () => {
+    setSystemIdState(id);
+    setOptionsState(true);
+  };
+  const handleAlertOverviewClick = () => {
+    setSystemIdState(id);
+    setAlertOverviewState(true);
+  };
   return (
     <System>
       <Header>
-        {hasMissedAlerts ? (
+        {missedAlerts ? (
           <MissedAlertBubble>{missedAlerts}</MissedAlertBubble>
         ) : (
           <div />
@@ -57,12 +66,19 @@ export default (
           <CopyIdIcon />
         </Button> */}
       </IdInfo>
-      <Subtitle>Number of Warnings per Day</Subtitle>
-      <AlertMap>{Heatmap(SampleData)}</AlertMap>
+      {/* <Subtitle>Number of Alerts per Day</Subtitle> */}
+      {/* <AlertMap>
+        {heatmapData && heatmapData.series.length ? (
+          Heatmap(heatmapData)
+        ) : (
+          <Text>No Data to Show</Text>
+        )}
+      </AlertMap> */}
       <Footer>
-        <Label onClick={handleSubscribersClick}>
-          {subscriptionNumber} Automations
-        </Label>
+        <Label onClick={handleSubscribersClick}>Subscribed Automations</Label>
+        <Button onClick={handleAlertOverviewClick}>
+          <StatsIcon />
+        </Button>
       </Footer>
     </System>
   );

@@ -165,7 +165,8 @@ export default (): ReactElement => {
             </form>,
             'Register Automation',
             'Add',
-            handleRegistrationState
+            handleRegistrationState,
+            () => {}
           )
         : null}
       {showSubscriptionModal
@@ -173,21 +174,23 @@ export default (): ReactElement => {
             selectorTable,
             'Selector Subscriptions',
             'Ok',
-            handleSubscriptionState
+            handleSubscriptionState,
+            () => {}
           )
         : null}
       {showAlertsModal
-        ? Modal(alertTable, 'Missed Alerts', 'Ok', handleAlertsState)
+        ? Modal(alertTable, 'Missed Alerts', 'Ok', handleAlertsState, () => {})
         : null}
       {showWarningsModal
-        ? Modal(alertTable, 'Missed Warnings', 'Ok', handleWarningsState)
+        ? Modal(alertTable, 'Missed Warnings', 'Ok', handleWarningsState, () => {})
         : null}
       {showOptionsModal
         ? Modal(
             <Button>Delete Automation</Button>,
             'Automation Options',
             'Ok',
-            handleOptionsState
+            handleOptionsState,
+            () => {}
           )
         : null}
     </Automations>

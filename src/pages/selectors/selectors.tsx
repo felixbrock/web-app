@@ -120,7 +120,8 @@ export default (): ReactElement => {
             </form>,
             'Register Selector',
             'Add',
-            handleRegistrationState
+            handleRegistrationState,
+            () => {}
           )
         : null}
       {showSubscribersModal
@@ -128,11 +129,12 @@ export default (): ReactElement => {
             subscriberTable,
             'Subscribed Automations',
             'Ok',
-            handleSubscribersState
+            handleSubscribersState,
+            () => {}
           )
         : null}
       {showAlertsModal
-        ? Modal(alertTable, 'Missed Alerts', 'Ok', handleAlertsState)
+        ? Modal(alertTable, 'Missed Alerts', 'Ok', handleAlertsState, () => {})
         : null}
       {showSubscribeModal
         ? Modal(
@@ -145,7 +147,8 @@ export default (): ReactElement => {
             </form>,
             'Subscribe Automation to Selector',
             'Subscribe',
-            handleSubscribeState
+            handleSubscribeState,
+            () => {}
           )
         : null}
       {showOptionsModal
@@ -153,7 +156,8 @@ export default (): ReactElement => {
             <Button>Delete Selector</Button>,
             'System Options',
             'Ok',
-            handleOptionsState
+            handleOptionsState,
+            () => {}
           )
         : null}
     </Selectors>

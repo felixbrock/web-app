@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { FaRegCopy, FaEllipsisV} from 'react-icons/fa';
+import { FaRegChartBar, FaRegCopy, FaEllipsisV} from 'react-icons/fa';
 
 
 export const System = styled.div`
@@ -48,6 +48,11 @@ export const Text = styled.div`
 `;
 
 export const CopyIdIcon = styled(FaRegCopy)`
+  color: #7f7f7f;
+  vertical-align: middle;
+`;
+
+export const StatsIcon = styled(FaRegChartBar)`
   color: #7f7f7f;
   vertical-align: middle;
 `;

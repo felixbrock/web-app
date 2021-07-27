@@ -13,7 +13,7 @@ import {
   Footer,
   Subscribe,
 } from './selector-items';
-import Heatmap from '../heatmap/heatmap';
+import {Heatmap} from '../heatmap/heatmap';
 import Button from '../button/button';
 import Label from '../label/label';
 import SampleData from '../heatmap/sample-heatmap-data';
@@ -57,7 +57,7 @@ export default (
       <Subtitle>Content</Subtitle>
       <Text>{content}</Text>
       <Subtitle>Number of Alerts per Day</Subtitle>
-      <AlertMap>{Heatmap(SampleData)}</AlertMap>
+      <AlertMap>{Heatmap(SampleData())}</AlertMap>
       <Footer>
         <Label onClick={handleSubscribersClick}>
           {subscriptionNumber} Subscribers

@@ -6,11 +6,11 @@ export default (
   content: ReactElement,
   title: string,
   buttonName: string,
-  onChange: (state: boolean) => void
+  setShowModal: (state: boolean) => void,
+  setSubmit: (state: boolean) => void
 ): ReactElement => {
-  function close() {
-    onChange(false);
-  }
+  const close = (): void => setShowModal(false);
+  const submit = (): void => setSubmit(true);
 
   return (
     <Modal>
@@ -20,9 +20,9 @@ export default (
         </Close>
         <Title>{title}</Title>
         {content}
-        <Submit>
-          <Button onClick={close}>{buttonName}</Button>
-        </Submit>
+        {buttonName ? <Submit>
+          <Button onClick={submit}>{buttonName}</Button>
+        </Submit> : null}
       </Content>
     </Modal>
   );

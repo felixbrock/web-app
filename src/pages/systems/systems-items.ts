@@ -41,15 +41,11 @@ export const IconAdd = styled(FaPlus)`
   vertical-align: middle;
 `;
 
-export const InputText = styled.input`
-width: 100%;
-margin: 10px;
-background-color: #bbbbbb;
-color: #333333;
-border: none;
-border-radius: 3px;
+export const FieldLabel = styled.p`
+  margin-left: 10px;
 `;
 
-export const FieldLabel = styled.p`
-margin-left: 10px;
+export const HeatmapElement = styled.div`
+vertical-align: middle;
+padding: 0% 15% 0% 15%;  
 `;
