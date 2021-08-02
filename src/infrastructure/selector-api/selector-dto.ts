@@ -1,4 +1,4 @@
-import AlertDto from "./arlert-dto";
+import AlertDto from "./alert-dto";
 
 export default interface SelectorDto {
   id: string;

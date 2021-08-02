@@ -203,18 +203,13 @@ const buildSeries = (
   return heatmapData.reverse();
 };
 
-export const buildHeatmapData = async (startDate: Date, endDate: Date, dateRegistry: DateData): Promise<HeatmapData> => {
-  try {
+export const buildHeatmapData = (startDate: Date, endDate: Date, dateRegistry: DateData): HeatmapData => {
     const dayRegistry = orderByDay(dateRegistry);
 
     return {
       metaData: { startDate },
       series: buildSeries(dayRegistry, endDate.getUTCDay()),
     };
-  } catch (error) {
-    console.log(error);
-    return { metaData: { startDate }, series: [] };
-  }
 };
 
 const type = 'heatmap';

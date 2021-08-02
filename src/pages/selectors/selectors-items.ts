@@ -40,3 +40,8 @@ export const FloatingButton = styled.button`
 export const IconAdd = styled(FaPlus)`
   vertical-align: middle;
 `;
+
+export const HeatmapElement = styled.div`
+vertical-align: middle;
+padding: 0% 15% 0% 15%;  
+`;

@@ -8,41 +8,33 @@ export default class SystemApiRepositoryImpl {
   public static getAll = async (): Promise<SystemDto[]> => {
     try {
       const response = await axios.get(`${apiRoot}/systems`);
-      if (response.status === 200) {
-        const jsonResponse = await response.data;
-        return jsonResponse;
-      }
-      return [];
+      const jsonResponse = response.data;
+      if (response.status === 200) return jsonResponse;
+      throw new Error(jsonResponse);
     } catch (error) {
-      console.log(error);
-      return [];
+      return Promise.reject(new Error(error.response.data.message));
     }
   };
 
   public static delete = async (systemId: string): Promise<boolean> => {
     try {
       const response = await axios.delete(`${apiRoot}/system/${systemId}`);
-      if (response.status === 200) {
-        return true;
-      }
-      return true;
+      const jsonResponse = response.data;
+      if (response.status === 200) return true;
+      throw new Error(jsonResponse);
     } catch (error) {
-      console.log(error);
-      return false;
+      return Promise.reject(new Error(error.response.data.message));
     }
   };
 
-  public static create = async (name: string): Promise<SystemDto | null> => {
+  public static post = async (name: string): Promise<SystemDto | null> => {
     try {
       const response = await axios.post(`${apiRoot}/system`, {name});
-      if (response.status === 201) {
-        const jsonResponse = await response.data;
-        return jsonResponse;
-      }
-      return null;
+      const jsonResponse = response.data;
+      if (response.status === 201) return jsonResponse;
+      throw new Error(jsonResponse);
     } catch (error) {
-      console.log(error);
-      return null;
+      return Promise.reject(new Error(error.response.data.message));
     }
   };
 }

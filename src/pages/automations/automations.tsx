@@ -14,11 +14,11 @@ import Modal from '../../components/modal/modal';
 import Table from '../../components/table/table';
 import Button from '../../components/button/button';
 
-function createRow(cards: ReactElement[]): ReactElement {
+function buildRow(cards: ReactElement[]): ReactElement {
   return <AutomationRow>{cards}</AutomationRow>;
 }
 
-function createRows(
+function buildRows(
   handleSubscriptionState: (state: boolean) => void,
   handleAlertsState: (state: boolean) => void,
   handleWarningsState: (state: boolean) => void,
@@ -48,14 +48,14 @@ function createRows(
     );
     automationCounter += 1;
     if (automationCounter === 4) {
-      rows.push(createRow(cards));
+      rows.push(buildRow(cards));
       cards = [];
       automationCounter = 0;
     }
   });
 
   if (cards !== undefined && cards.length !== 0) {
-    rows.push(createRow(cards));
+    rows.push(buildRow(cards));
     cards = [];
   }
 
@@ -143,7 +143,7 @@ export default (): ReactElement => {
 
   return (
     <Automations>
-      {createRows(
+      {buildRows(
         handleSubscriptionState,
         handleAlertsState,
         handleWarningsState,

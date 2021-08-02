@@ -25,7 +25,7 @@ export default (
   setSystemIdState: (systemId: string) => void,
   setSubscribersState: (state: boolean) => void,
   setOptionsState: (state: boolean) => void,
-  setAlertOverviewState: (state: boolean) => void
+  setAlertsOverviewState: (state: boolean) => void
 ): ReactElement => {
   const history = useHistory();
 
@@ -41,9 +41,9 @@ export default (
     setSystemIdState(id);
     setOptionsState(true);
   };
-  const handleAlertOverviewClick = () => {
+  const handleAlertsOverviewClick = () => {
     setSystemIdState(id);
-    setAlertOverviewState(true);
+    setAlertsOverviewState(true);
   };
   return (
     <System>
@@ -76,7 +76,7 @@ export default (
       </AlertMap> */}
       <Footer>
         <Label onClick={handleSubscribersClick}>Subscribed Automations</Label>
-        <Button onClick={handleAlertOverviewClick}>
+        <Button onClick={handleAlertsOverviewClick}>
           <StatsIcon />
         </Button>
       </Footer>

@@ -17,8 +17,8 @@ export default (headers: string[], rows: any[][]): ReactElement => {
 
   return (
     <Table>
-      <TR>{headerElements}</TR>
-      {rowElements}
+      <thead><TR>{headerElements}</TR></thead>
+      <tbody>{rowElements}</tbody>
     </Table>
   );
 };

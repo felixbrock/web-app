@@ -6,10 +6,10 @@ export default (
   content: ReactElement,
   title: string,
   buttonName: string,
-  setShowModal: (state: boolean) => void,
+  setClose: (state: boolean) => void,
   setSubmit: (state: boolean) => void
 ): ReactElement => {
-  const close = (): void => setShowModal(false);
+  const close = (): void => setClose(false);
   const submit = (): void => setSubmit(true);
 
   return (

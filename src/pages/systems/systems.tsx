@@ -29,80 +29,15 @@ import {
   Heatmap,
   HeatmapData,
 } from '../../components/heatmap/heatmap';
+import WarningDto from '../../infrastructure/system-api/warning-dto';
 
-interface AlertsAccessedOn {
+interface OldestAlertsAccessedOnByUser {
   systemId: string;
-  alertsAccessedOn: number;
+  selectorId: string;
+  alertsAccessedOnByUser: number;
 }
 
 const isWhitespaceString = (text: string): boolean => !/\S/.test(text);
-
-const getSubscribedAutomations = async (
-  systemId: string
-): Promise<SubscriptionDto[]> => {
-  try {
-    const subscriptions: SubscriptionDto[] =
-      await SubscriptionApiRepository.getBy(
-        new URLSearchParams({ targetSystemId: systemId })
-      );
-
-    if (!subscriptions.length)
-      throw new Error(
-        `No automations that subscribe to system ${systemId} were found`
-      );
-
-    return subscriptions;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
-
-const getAlertsAccessedOnValues = async (
-  userId: string
-): Promise<AlertsAccessedOn[]> => {
-  const accessedOnValues: AlertsAccessedOn[] = [];
-
-  try {
-    const accounts: AccountDto[] =
-      await AccountApiRepository.getAccountsByUserId(userId);
-
-    if (!accounts.length)
-      throw new Error(`No user-account found for user ${userId}`);
-
-    const subscriptions: SubscriptionDto[] =
-      await SubscriptionApiRepository.getBy(
-        new URLSearchParams({ accountId: accounts[0].id })
-      );
-
-    if (!subscriptions.length)
-      throw new Error(
-        `No subscriptions were found for account ${accounts[0].id}`
-      );
-
-    subscriptions.forEach((subscription) => {
-      subscription.targets.forEach((target) => {
-        const systemAccessedOn = accessedOnValues.find(
-          (value) => value.systemId === target.systemId
-        );
-
-        if (
-          !systemAccessedOn ||
-          systemAccessedOn.alertsAccessedOn < target.alertsAccessedOn
-        )
-          accessedOnValues.push({
-            systemId: target.systemId,
-            alertsAccessedOn: target.alertsAccessedOn,
-          });
-      });
-    });
-
-    return accessedOnValues;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
 
 const getDateData = async (
   startDate: Date,
@@ -114,22 +49,26 @@ const getDateData = async (
   const alertCreatedOnStart = buildQueryTimestamp(startDate);
   const alertCreatedOnEnd = buildQueryTimestamp(endDate);
 
-  const selectors: SelectorDto[] = await SelectorApiRepository.getBy(
-    new URLSearchParams({ systemId, alertCreatedOnStart, alertCreatedOnEnd })
-  );
-
-  selectors.forEach((selector) => {
-    const relevantAlerts = selector.alerts.filter(
-      (alert) =>
-        alert.createdOn >= startDate.getTime() &&
-        alert.createdOn <= endDate.getTime()
+  try {
+    const selectors: SelectorDto[] = await SelectorApiRepository.getBy(
+      new URLSearchParams({ systemId, alertCreatedOnStart, alertCreatedOnEnd })
     );
-    relevantAlerts.forEach((alert) => {
-      dateRegistry[buildDateKey(new Date(alert.createdOn))] += 1;
-    });
-  });
 
-  return dateRegistry;
+    selectors.forEach((selector) => {
+      const relevantAlerts = selector.alerts.filter(
+        (alert) =>
+          alert.createdOn >= startDate.getTime() &&
+          alert.createdOn <= endDate.getTime()
+      );
+      relevantAlerts.forEach((alert) => {
+        dateRegistry[buildDateKey(new Date(alert.createdOn))] += 1;
+      });
+    });
+
+    return dateRegistry;
+  } catch (error) {
+    return Promise.reject(new Error(error.message));
+  }
 };
 
 const getHeatmapData = async (systemId: string): Promise<HeatmapData> => {
@@ -150,69 +89,80 @@ const getHeatmapData = async (systemId: string): Promise<HeatmapData> => {
   try {
     const dateRegistry = await getDateData(startDate, endDate, systemId);
 
-    const heatmapData = await buildHeatmapData(
-      startDate,
-      endDate,
-      dateRegistry
-    );
+    const heatmapData = buildHeatmapData(startDate, endDate, dateRegistry);
 
     return heatmapData;
   } catch (error) {
-    console.log(error);
-    return { metaData: { startDate }, series: [] };
+    return Promise.reject(new Error(error.message));
   }
 };
 
-const getSystems = async (): Promise<SystemDto[]> => {
-  try {
-    return await SystemApiRepository.getAll();
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
-
-const deleteSystem = async (systemId: string): Promise<boolean> => {
-  try {
-    return await SystemApiRepository.delete(systemId);
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-};
-
-const createSystem = async (name: string): Promise<SystemDto | null> => {
-  try {
-    return await SystemApiRepository.create(name);
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
-};
-
-const createSelector = async (
-  content: string,
+const getSubscribedAutomations = async (
   systemId: string
-): Promise<SelectorDto | null> => {
+): Promise<SubscriptionDto[]> => {
   try {
-    return await SelectorApiRepository.create(content, systemId);
+    return await SubscriptionApiRepository.getBy(
+      new URLSearchParams({ targetSystemId: systemId })
+    );
   } catch (error) {
-    console.log(error);
-    return null;
+    return Promise.reject(new Error(error.message));
   }
 };
 
-const createRow = (cards: ReactElement[]): ReactElement => (
+const getOldestAlertsAccessedOnByUser = async (
+  userId: string
+): Promise<OldestAlertsAccessedOnByUser[]> => {
+  const accessedOnByUserValues: OldestAlertsAccessedOnByUser[] = [];
+
+  try {
+    const accounts: AccountDto[] =
+      await AccountApiRepository.getAccountsByUserId(
+        new URLSearchParams({ userId })
+      );
+
+    if (!accounts.length)
+      throw new Error(`No accounts found for user ${userId}`);
+
+    const subscriptions: SubscriptionDto[] =
+      await SubscriptionApiRepository.getBy(
+        new URLSearchParams({ accountId: accounts[0].id })
+      );
+
+    subscriptions.forEach((subscription) => {
+      subscription.targets.forEach((target) => {
+        const selectorAccessedOnByUser = accessedOnByUserValues.find(
+          (value) => value.selectorId === target.selectorId
+        );
+
+        if (
+          !selectorAccessedOnByUser ||
+          selectorAccessedOnByUser.alertsAccessedOnByUser <
+            target.alertsAccessedOnByUser
+        )
+          accessedOnByUserValues.push({
+            systemId: target.systemId,
+            selectorId: target.selectorId,
+            alertsAccessedOnByUser: target.alertsAccessedOnByUser,
+          });
+      });
+    });
+    return accessedOnByUserValues;
+  } catch (error) {
+    return Promise.reject(new Error(error.message));
+  }
+};
+
+const buildRow = (cards: ReactElement[]): ReactElement => (
   <SystemRow>{cards}</SystemRow>
 );
 
-const createRows = (
+const buildRows = (
   systems: SystemDto[],
-  alertsAccessedOnValues: AlertsAccessedOn[],
+  alertsAccessedOnByUserValues: OldestAlertsAccessedOnByUser[],
   handleSystemIdState: (systemId: string) => void,
   handleSubscribersState: (state: boolean) => void,
   handleOptionsState: (state: boolean) => void,
-  handleHeatmapState: (state: boolean) => void
+  handleAlertsOverviewState: (state: boolean) => void
 ): ReactElement[] => {
   let cards: ReactElement[] = [];
   const rows: ReactElement[] = [];
@@ -220,39 +170,46 @@ const createRows = (
   let systemCounter = 0;
 
   systems.forEach((system) => {
-    const alertAccessedOn = alertsAccessedOnValues.find(
-      (value) => value.systemId === system.id
-    );
+    const systemAccessedOnElements: OldestAlertsAccessedOnByUser[] =
+      alertsAccessedOnByUserValues.filter(
+        (value) => value.systemId === system.id
+      );
 
-    const missedAlerts = alertAccessedOn
-      ? system.warnings.filter(
-          (warning) => warning.createdOn > alertAccessedOn.alertsAccessedOn
-        )
-      : [];
+    const missedWarnings: WarningDto[] = systemAccessedOnElements.flatMap(
+      (value) => {
+        const warnings = system.warnings.filter(
+          (warning) =>
+            warning.createdOn > value.alertsAccessedOnByUser &&
+            warning.selectorId === value.selectorId
+        );
+
+        return warnings;
+      }
+    );
 
     cards.push(
       <SystemColumn>
         {SystemComponent(
           system.id,
           system.name,
-          missedAlerts.length,
+          missedWarnings.length,
           handleSystemIdState,
           handleSubscribersState,
           handleOptionsState,
-          handleHeatmapState
+          handleAlertsOverviewState
         )}
       </SystemColumn>
     );
     systemCounter += 1;
     if (systemCounter === 4) {
-      rows.push(createRow(cards));
+      rows.push(buildRow(cards));
       cards = [];
       systemCounter = 0;
     }
   });
 
   if (cards !== undefined && cards.length !== 0) {
-    rows.push(createRow(cards));
+    rows.push(buildRow(cards));
     cards = [];
   }
 
@@ -262,16 +219,16 @@ const createRows = (
 export default (): ReactElement => {
   const [systems, setSystems] = useState<SystemDto[]>([]);
 
-  const [alertsAccessedOn, setAlertsAccessedOn] = useState<AlertsAccessedOn[]>(
-    []
-  );
+  const [alertsAccessedOnByUser, setAlertsAccessedOnByUser] = useState<
+    OldestAlertsAccessedOnByUser[]
+  >([]);
 
   const [heatmap, setHeatmap] = useState<ReactElement>();
 
-  const [showAlertOverviewModal, setShowAlertOverviewModal] = useState(false);
+  const [showAlertsOverviewModal, setShowAlertsOverviewModal] = useState(false);
 
-  const handleShowHeatmapState = (): void =>
-    setShowAlertOverviewModal(!showAlertOverviewModal);
+  const handleAlertsOverviewState = (): void =>
+    setShowAlertsOverviewModal(!showAlertsOverviewModal);
 
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
@@ -309,25 +266,36 @@ export default (): ReactElement => {
 
   const [toDelete, setToDelete] = useState(false);
 
-  const renderSystems = () => {
-    const systemIds: string[] = [];
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
-    getSystems()
+  const handleErrorState = (): void => setShowErrorModal(!showErrorModal);
+
+  const [systemError, setSystemError] = useState('');
+
+  const renderSystems = () => {
+    SystemApiRepository.getAll()
       .then((systemDtos) => {
-        systemDtos.forEach((dto) => systemIds.push(dto.id));
         setSystems(systemDtos);
-        return getAlertsAccessedOnValues(
+        return getOldestAlertsAccessedOnByUser(
           '65099e0f-aa7f-447b-9fda-3181c71f93f0'
         );
       })
-      .then((accessedOnValues) => setAlertsAccessedOn(accessedOnValues))
-      .catch((error) => console.log(error));
+      .then((accessedOnByUserValues) =>
+        setAlertsAccessedOnByUser(accessedOnByUserValues)
+      )
+      .catch((error) => {
+        setSystemError(error.message);
+        setShowErrorModal(true);
+      });
   };
 
   useEffect(renderSystems, []);
 
   useEffect(() => {
-    if (!showSubscribersModal) return;
+    if (!showSubscribersModal) {
+      setAutomations(undefined);
+      return;
+    }
 
     getSubscribedAutomations(systemId)
       .then((automationElements) => {
@@ -339,90 +307,99 @@ export default (): ReactElement => {
 
         setAutomations(Table(headers, content));
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        setSystemError(error.message);
+        setShowErrorModal(true);
+      });
   }, [showSubscribersModal]);
 
   useEffect(() => {
     if (!registrationSubmit) return;
 
-    createSystem(systemName)
+    SystemApiRepository.post(systemName)
       .then((system) => {
-        if (!system)
-          return Promise.reject(
-            new Error(`Creation of system ${systemName} failed`)
-          );
+        if (!system) throw new Error(`Creation of system ${systemName} failed`);
 
         console.log(
           `System ${systemName} sucessfully created under id ${system.id}`
         );
 
         if (!selectorContent || isWhitespaceString(selectorContent))
-          return Promise.reject(new Error('No selector to be created'));
+          return null;
 
-        setSystemName('');
-
-        return createSelector(selectorContent, system.id);
+        return SelectorApiRepository.post(selectorContent, systemId);
       })
       .then((selector) => {
-        const resultMessage = selector
-          ? `Selector ${selectorContent} sucessfully created under id ${selector.id}`
-          : `Creation of selector ${selectorContent} failed`;
-        console.log(resultMessage);
+        if (!selector)
+          throw new Error(`Creation of selector ${selectorContent} failed`);
 
-        setSelectorContent('');
+        console.log(
+          `Selector ${selectorContent} sucessfully created under id ${selector.id}`
+        );
 
         renderSystems();
 
         setRegistrationSubmit(false);
       })
       .catch((error) => {
-        console.log(error);
-
         renderSystems();
-
         setRegistrationSubmit(false);
+        setSystemError(error.message);
+        setShowErrorModal(true);
       });
   }, [registrationSubmit]);
 
   useEffect(() => {
+    if (!showRegistrationModal) {
+      setSelectorContent('');
+      setSystemName('');
+    }
+  }, [showRegistrationModal]);
+
+  useEffect(() => {
     if (!toDelete) return;
 
-    deleteSystem(systemId)
-      .then((result) => {
-        if (result) {
-          console.log(`System ${systemId} sucessfully deleted`);
+    SystemApiRepository.delete(systemId)
+      .then((deleted) => {
+        if (!deleted) throw new Error(`Deletion of system ${systemId} failed`);
 
-          setShowOptionsModal(false);
+        console.log(`Selector ${systemId} sucessfully deleted`);
 
-          renderSystems();
-        } else {
-          console.log(`Deletion of system ${systemId} failed`);
-
-          setShowOptionsModal(false);
-        }
+        renderSystems();
 
         setToDelete(false);
+        setShowOptionsModal(false);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        setToDelete(false);
+        setSystemError(error.message);
+        setShowErrorModal(true);
+      });
   }, [toDelete]);
 
   useEffect(() => {
-    if (!showAlertOverviewModal) return;
+    if (!showAlertsOverviewModal) {
+      setHeatmap(undefined);
+      return;
+    }
 
-    getHeatmapData(systemId).then((heatmapData) =>
-      setHeatmap(Heatmap(heatmapData))
-    );
-  }, [showAlertOverviewModal]);
+    getHeatmapData(systemId)
+      .then((heatmapData) => setHeatmap(Heatmap(heatmapData)))
+      .catch((error) => {
+        setSystemError(error.message);
+        setShowErrorModal(true);
+      });
+  }, [showAlertsOverviewModal]);
 
   return (
     <Systems>
-      {createRows(
+      {buildRows(
         systems,
-        alertsAccessedOn,
+        alertsAccessedOnByUser,
         handleSystemIdState,
         handleSubscribersState,
         handleOptionsState,
-        handleShowHeatmapState
+        handleAlertsOverviewState
       )}
       <FloatingButton onClick={() => setShowRegistrationModal(true)}>
         <IconAdd />
@@ -468,13 +445,22 @@ export default (): ReactElement => {
             handleOptionsState
           )
         : null}
-      {showAlertOverviewModal && heatmap
+      {showAlertsOverviewModal && heatmap
         ? Modal(
             <HeatmapElement>{heatmap}</HeatmapElement>,
             'Number of Alerts per Day',
             'Ok',
-            handleShowHeatmapState,
-            handleShowHeatmapState
+            handleAlertsOverviewState,
+            handleAlertsOverviewState
+          )
+        : null}
+      {showErrorModal && systemError
+        ? Modal(
+            <p>{systemError}</p>,
+            'An error occurred',
+            'Ok',
+            handleErrorState,
+            handleErrorState
           )
         : null}
     </Systems>
