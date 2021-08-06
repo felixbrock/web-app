@@ -23,7 +23,6 @@ import SelectorDto from '../../infrastructure/selector-api/selector-dto';
 import {
   buildDateKey,
   buildHeatmapData,
-  buildQueryTimestamp,
   DateData,
   generateDateDataStub,
   Heatmap,
@@ -38,6 +37,32 @@ interface OldestAlertsAccessedOnByUser {
 }
 
 const isWhitespaceString = (text: string): boolean => !/\S/.test(text);
+
+export const buildQueryTimestamp = (date: Date): string => {
+  const dateYear = date.getUTCFullYear();
+  const dateMonth =
+    date.getUTCMonth() < 10
+      ? `0${(date.getUTCMonth() + 1).toString()}`
+      : date.getUTCMonth().toString();
+  const dateDate =
+    date.getUTCDate() < 10
+      ? `0${date.getUTCDate().toString()}`
+      : date.getUTCDate().toString();
+  const dateHour =
+    date.getUTCHours() < 10
+      ? `0${date.getUTCHours().toString()}`
+      : date.getUTCHours().toString();
+  const dateMinutes =
+    date.getUTCMinutes() < 10
+      ? `0${date.getUTCMinutes().toString()}`
+      : date.getUTCMinutes().toString();
+  const dateSeconds =
+    date.getUTCSeconds() < 10
+      ? `0${date.getUTCSeconds().toString()}`
+      : date.getUTCSeconds().toString();
+
+  return `${dateYear}${dateMonth}${dateDate}T${dateHour}${dateMinutes}${dateSeconds}Z`;
+};
 
 const getDateData = async (
   startDate: Date,
