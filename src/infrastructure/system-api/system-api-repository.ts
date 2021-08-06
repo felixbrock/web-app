@@ -16,6 +16,19 @@ export default class SystemApiRepositoryImpl {
     }
   };
 
+  public static getOne = async (
+    systemId: string
+  ): Promise<SystemDto | null> => {
+    try {
+      const response = await axios.get(`${apiRoot}/system/${systemId}`);
+      const jsonResponse = response.data;
+      if (response.status === 200) return jsonResponse;
+      throw new Error(jsonResponse);
+    } catch (error) {
+      return Promise.reject(new Error(error.response.data.message));
+    }
+  };
+
   public static delete = async (systemId: string): Promise<boolean> => {
     try {
       const response = await axios.delete(`${apiRoot}/system/${systemId}`);

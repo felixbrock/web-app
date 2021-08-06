@@ -1,4 +1,4 @@
-export default interface TargetDto {
+export default interface SubscriptionDto {
   selectorId: string;
   systemId: string;
   alertsAccessedOn: number;

@@ -5,7 +5,7 @@ import {
   MissedAlertBubble,
   Title,
   OptionsIcon,
-  // IdInfo,
+  IdInfo,
   Text,
   StatsIcon,
   // CopyIdIcon,
@@ -23,7 +23,7 @@ export default (
   id: string,
   content: string,
   missedAlerts: number,
-  setSelectorIdState: (systemId: string) => void,
+  setSelectorId: (systemId: string) => void,
   setSubscribersState: (state: boolean) => void,
   setOptionsState: (state: boolean) => void,
   setAlertsOverviewState: (state: boolean) => void,
@@ -31,23 +31,23 @@ export default (
   setSubscribeClick: (state: boolean) => void,
   ): ReactElement => {
     const handleSubscribersClick = () => {
-    setSelectorIdState(id);
+    setSelectorId(id);
     setSubscribersState(true);
   };
   const handleOptionsClick = () => {
-    setSelectorIdState(id);
+    setSelectorId(id);
     setOptionsState(true);
   };
   const handleAlertsOverviewClick = () => {
-    setSelectorIdState(id);
+    setSelectorId(id);
     setAlertsOverviewState(true);
   };
   const handleAlertsClick = () => {
-    setSelectorIdState(id);
+    setSelectorId(id);
     setAlertsClick(true);
   };
   const handleSubscribeClick = () => {
-    setSelectorIdState(id);
+    setSelectorId(id);
     setSubscribeClick(true);
   };
 
@@ -64,12 +64,12 @@ export default (
           <OptionsIcon />
         </Button>
       </Header>
+      <IdInfo>
         <Text>{id}</Text>
-      {/* <IdInfo> */}
         {/* <Button onClick={test}>
           <CopyIdIcon />
         </Button> */}
-      {/* </IdInfo> */}
+      </IdInfo>
       <Subtitle>Content</Subtitle>
       <Text>{content}</Text>
       {/* <Subtitle>Number of Alerts per Day</Subtitle>

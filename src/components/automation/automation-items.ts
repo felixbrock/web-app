@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { FaRegCopy, FaEllipsisV } from 'react-icons/fa';
+import { FaRegChartBar, FaRegCopy, FaEllipsisV } from 'react-icons/fa';
 
 export const Automation = styled.div`
   text-align: center;
@@ -58,6 +58,11 @@ export const Title = styled.div`
 
 export const OptionsIcon = styled(FaEllipsisV)`
   color: #bbbbbb;
+  vertical-align: middle;
+`;
+
+export const StatsIcon = styled(FaRegChartBar)`
+  color: #7f7f7f;
   vertical-align: middle;
 `;
 

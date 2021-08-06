@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, useEffect } from 'react';
+import React, { ReactElement, useState, useRef, useEffect } from 'react';
 import SelectorComponent from '../../components/selector/selector';
 import {
   Selectors,
@@ -14,9 +14,9 @@ import Button from '../../components/button/button';
 import SelectorDto from '../../infrastructure/selector-api/selector-dto';
 import SelectorApiRepository from '../../infrastructure/selector-api/selector-api-repository';
 import AccountApiRepository from '../../infrastructure/account-api/account-api-repository';
-import SubscriptionApiRepository from '../../infrastructure/subscription-api/subscription-api-repository';
+import AutomationApiRepository from '../../infrastructure/automation-api/automation-api-repository';
 import AccountDto from '../../infrastructure/account-api/account-dto';
-import SubscriptionDto from '../../infrastructure/subscription-api/subscription-dto';
+import AutomationDto from '../../infrastructure/automation-api/automation-dto';
 import Table from '../../components/table/table';
 import {
   buildDateKey,
@@ -26,8 +26,7 @@ import {
   Heatmap,
   HeatmapData,
 } from '../../components/heatmap/heatmap';
-import AlertDto from '../../infrastructure/selector-api/alert-dto';
-import TargetDto from '../../infrastructure/subscription-api/target-dto';
+import SubscriptionDto from '../../infrastructure/automation-api/subscription-dto';
 
 interface OldestAlertsAccessedOnByUser {
   selectorId: string;
@@ -79,22 +78,10 @@ const getHeatmapData = (selector: SelectorDto | undefined): HeatmapData => {
   return heatmapData;
 };
 
-const getSubscribedAutomations = async (
-  selectorId: string
-): Promise<SubscriptionDto[]> => {
-  try {
-    return await SubscriptionApiRepository.getBy(
-      new URLSearchParams({ targetSelectorId: selectorId })
-    );
-  } catch (error) {
-    return Promise.reject(new Error(error.message));
-  }
-};
-
 const updateAlertAccessedOnValues = async (
   userId: string,
   selectorId: string
-): Promise<TargetDto[]> => {
+): Promise<SubscriptionDto[]> => {
   try {
     const accounts: AccountDto[] =
       await AccountApiRepository.getAccountsByUserId(
@@ -104,35 +91,33 @@ const updateAlertAccessedOnValues = async (
     if (!accounts.length)
       throw new Error(`No accounts found for user ${userId}`);
 
-    const subscriptions: SubscriptionDto[] =
-      await SubscriptionApiRepository.getBy(
-        new URLSearchParams({ accountId: accounts[0].id })
-      );
+    const automations: AutomationDto[] = await AutomationApiRepository.getBy(
+      new URLSearchParams({ accountId: accounts[0].id })
+    );
 
-    const updatedTargets: TargetDto[] = [];
+    const updatedSubscriptions: SubscriptionDto[] = [];
 
-    subscriptions.forEach(async (subscription) => {
-      const target = subscription.targets.find(
+    await Promise.all(automations.map(async (automation) => {
+      const subscription = automation.subscriptions.find(
         (element) => element.selectorId === selectorId
       );
 
-      if (!target) return;
+      if (!subscription) return;
 
-      const updatedTarget = await SubscriptionApiRepository.updateTarget(
-        subscription.id,
-        selectorId,
-        Date.now()
+      const updatedEntities = await AutomationApiRepository.updateSubscriptions(
+        automation.id,
+        [{ selectorId, alertsAccessedOnByUser: Date.now() }]
       );
 
-      if (!updatedTarget)
+      if (!updatedSubscriptions || !updatedSubscriptions.length)
         throw new Error(
-          `Update of target for selector ${selectorId} in context of subscription ${subscription.id} failed`
+          `Update of subscription for selector ${selectorId} in context of automation ${automation.id} failed`
         );
 
-      updatedTargets.push(updatedTarget);
-    });
+      updatedEntities.forEach((element) => updatedSubscriptions.push(element));
+    }));
 
-    return updatedTargets;
+    return updatedSubscriptions;
   } catch (error) {
     return Promise.reject(new Error(error.message));
   }
@@ -153,31 +138,30 @@ const getOldestAlertsAccessedOnByUser = async (
     if (!accounts.length)
       throw new Error(`No accounts found for user ${userId}`);
 
-    const subscriptions: SubscriptionDto[] =
-      await SubscriptionApiRepository.getBy(
-        new URLSearchParams({ accountId: accounts[0].id })
+    const automations: AutomationDto[] = await AutomationApiRepository.getBy(
+      new URLSearchParams({ accountId: accounts[0].id })
+    );
+
+    automations.forEach((automation) => {
+      const relevantSubscriptions = automation.subscriptions.filter(
+        (subscription) => selectorIds.includes(subscription.selectorId)
       );
 
-    subscriptions.forEach((subscription) => {
-      const relevantTargets = subscription.targets.filter((target) =>
-        selectorIds.includes(target.selectorId)
-      );
+      if (!relevantSubscriptions.length) return;
 
-      if (!relevantTargets.length) return;
-
-      relevantTargets.forEach((target) => {
+      relevantSubscriptions.forEach((subscription) => {
         const selectorAccessedOnByUser = accessedOnByUserValues.find(
-          (value) => value.selectorId === target.selectorId
+          (value) => value.selectorId === subscription.selectorId
         );
 
         if (
           !selectorAccessedOnByUser ||
           selectorAccessedOnByUser.alertsAccessedOnByUser <
-            target.alertsAccessedOnByUser
+            subscription.alertsAccessedOnByUser
         )
           accessedOnByUserValues.push({
-            selectorId: target.selectorId,
-            alertsAccessedOnByUser: target.alertsAccessedOnByUser,
+            selectorId: subscription.selectorId,
+            alertsAccessedOnByUser: subscription.alertsAccessedOnByUser,
           });
       });
     });
@@ -188,14 +172,6 @@ const getOldestAlertsAccessedOnByUser = async (
   }
 };
 
-const getMissedAlerts = (
-  selector: SelectorDto,
-  oldestAlertsAccessedOnByUser: number
-): AlertDto[] =>
-  selector.alerts.filter(
-    (alert) => alert.createdOn >= oldestAlertsAccessedOnByUser
-  );
-
 const buildRow = (cards: ReactElement[]): ReactElement => (
   <SelectorRow>{cards}</SelectorRow>
 );
@@ -203,7 +179,7 @@ const buildRow = (cards: ReactElement[]): ReactElement => (
 const buildRows = (
   selectors: SelectorDto[],
   alertsAccessedOnByUserValues: OldestAlertsAccessedOnByUser[],
-  handleSelectorIdState: (systemId: string) => void,
+  handleSelectorId: (systemId: string) => void,
   handleSubscribersState: (state: boolean) => void,
   handleOptionsState: (state: boolean) => void,
   handleAlertsOverviewState: (state: boolean) => void,
@@ -233,7 +209,7 @@ const buildRows = (
           selector.id,
           selector.content,
           missedAlerts.length,
-          handleSelectorIdState,
+          handleSelectorId,
           handleSubscribersState,
           handleOptionsState,
           handleAlertsOverviewState,
@@ -262,23 +238,26 @@ export default (props: any): ReactElement => {
   const { match } = props;
   const systemId = match.params.id;
 
+  const initialRenderFinished = useRef(false);
+
   const [selectors, setSelectors] = useState<SelectorDto[]>([]);
 
   const [alertsAccessedOnByUser, setAlertsAccessedOnByUser] = useState<
     OldestAlertsAccessedOnByUser[]
   >([]);
 
-  const [automations, setAutomations] = useState<ReactElement>();
+  const [automationsElement, setAutomationsElement] = useState<ReactElement>();
 
-  const [missedAlerts, setMissedAlerts] = useState<ReactElement>();
+  const [missedAlertsElement, setMissedAlertsElement] =
+    useState<ReactElement>();
 
-  const [heatmap, setHeatmap] = useState<ReactElement>();
+  const [heatmapElement, setHeatmapElement] = useState<ReactElement>();
 
   const [toDelete, setToDelete] = useState(false);
 
   const [selectorId, setSelectorId] = useState('');
 
-  const handleSelectorIdState = (id: string): void => {
+  const handleSelectorId = (id: string): void => {
     setSelectorId(id);
   };
 
@@ -345,9 +324,11 @@ export default (props: any): ReactElement => {
           selectorDtos.map((selectorDto) => selectorDto.id)
         );
       })
-      .then((accessedOnByUserValues) =>
-        setAlertsAccessedOnByUser(accessedOnByUserValues)
-      )
+      .then((accessedOnByUserValues) => {
+        setAlertsAccessedOnByUser(accessedOnByUserValues);
+        if (!initialRenderFinished.current)
+          initialRenderFinished.current = true;
+      })
       .catch((error) => {
         setSystemError(error.message);
         setShowErrorModal(true);
@@ -357,21 +338,24 @@ export default (props: any): ReactElement => {
   useEffect(renderSelectors, []);
 
   useEffect(() => {
+    if (!initialRenderFinished.current) return;
     if (!showSubscribersModal) {
-      setAutomations(undefined);
+      setAutomationsElement(undefined);
       return;
     }
 
-    getSubscribedAutomations(selectorId)
+    AutomationApiRepository.getBy(
+      new URLSearchParams({ subscriptionSelectorId: selectorId })
+    )
       .then((automationElements) => {
         const tableContent: string[][] = automationElements.map(
-          (automation) => [automation.automationName, automation.id]
+          (automation) => [automation.name, automation.id]
         );
         const tableHeaders: string[] = tableContent.length
           ? ['Name', 'Id']
           : [];
 
-        setAutomations(Table(tableHeaders, tableContent));
+        setAutomationsElement(Table(tableHeaders, tableContent));
       })
       .catch((error) => {
         setSystemError(error.message);
@@ -380,8 +364,9 @@ export default (props: any): ReactElement => {
   }, [showSubscribersModal]);
 
   useEffect(() => {
+    if (!initialRenderFinished.current) return;
     if (!showAlertsModal) {
-      setMissedAlerts(undefined);
+      setMissedAlertsElement(undefined);
       updateAlertAccessedOnValues(
         '65099e0f-aa7f-447b-9fda-3181c71f93f0',
         selectorId
@@ -415,9 +400,9 @@ export default (props: any): ReactElement => {
       return;
     }
 
-    const alerts = getMissedAlerts(
-      selector,
-      oldestAlertsAccessedOnByUser.alertsAccessedOnByUser
+    const alerts = selector.alerts.filter(
+      (alert) =>
+        alert.createdOn >= oldestAlertsAccessedOnByUser.alertsAccessedOnByUser
     );
 
     const tableContent: string[][] = alerts.map((alert) => [
@@ -425,11 +410,11 @@ export default (props: any): ReactElement => {
     ]);
     const tableHeaders: string[] = tableContent.length ? ['Occurrence'] : [];
 
-    setMissedAlerts(Table(tableHeaders, tableContent));
+    setMissedAlertsElement(Table(tableHeaders, tableContent));
   }, [showAlertsModal]);
 
   useEffect(() => {
-    if (!registrationSubmit) return;
+    if (!registrationSubmit || !initialRenderFinished.current) return;
 
     SelectorApiRepository.post(content, systemId)
       .then((selector) => {
@@ -443,8 +428,6 @@ export default (props: any): ReactElement => {
         renderSelectors();
 
         setRegistrationSubmit(false);
-
-        return Promise.resolve();
       })
       .catch((error) => {
         setRegistrationSubmit(false);
@@ -454,15 +437,15 @@ export default (props: any): ReactElement => {
   }, [registrationSubmit]);
 
   useEffect(() => {
-    if (!showRegistrationModal) setContent('');
+    if (!showRegistrationModal && initialRenderFinished.current) setContent('');
   }, [showRegistrationModal]);
 
   useEffect(() => {
-    if (!automationSubscribe) return;
+    if (!automationSubscribe || !initialRenderFinished.current) return;
 
-    SubscriptionApiRepository.postTarget(automationId, systemId, selectorId)
-      .then((target) => {
-        if (!target)
+    AutomationApiRepository.postSubscription(automationId, systemId, selectorId)
+      .then((subscription) => {
+        if (!subscription)
           throw new Error(
             `Subscription of automation ${automationId} to selector ${selectorId} failed`
           );
@@ -484,15 +467,15 @@ export default (props: any): ReactElement => {
   }, [automationSubscribe]);
 
   useEffect(() => {
-    if (!showSubscribeModal) setAutomationId('');
+    if (!showSubscribeModal && initialRenderFinished.current) setAutomationId('');
   }, [showSubscribeModal]);
 
   useEffect(() => {
-    if (!showErrorModal) setSystemError('');
+    if (!showErrorModal && initialRenderFinished.current) setSystemError('');
   }, [showErrorModal]);
 
   useEffect(() => {
-    if (!toDelete) return;
+    if (!toDelete || !initialRenderFinished.current) return;
 
     SelectorApiRepository.delete(selectorId)
       .then((deleted) => {
@@ -514,8 +497,9 @@ export default (props: any): ReactElement => {
   }, [toDelete]);
 
   useEffect(() => {
+    if (!initialRenderFinished.current) return;
     if (!showAlertsOverviewModal) {
-      setHeatmap(undefined);
+      setHeatmapElement(undefined);
       return;
     }
 
@@ -523,7 +507,7 @@ export default (props: any): ReactElement => {
     const heatmapData = selector
       ? getHeatmapData(selector)
       : getHeatmapData(undefined);
-    setHeatmap(Heatmap(heatmapData));
+    setHeatmapElement(Heatmap(heatmapData));
   }, [showAlertsOverviewModal]);
 
   return (
@@ -531,7 +515,7 @@ export default (props: any): ReactElement => {
       {buildRows(
         selectors,
         alertsAccessedOnByUser,
-        handleSelectorIdState,
+        handleSelectorId,
         handleSubscribersState,
         handleOptionsState,
         handleAlertsOverviewState,
@@ -558,9 +542,9 @@ export default (props: any): ReactElement => {
             handleRegistrationSubmit
           )
         : null}
-      {showSubscribersModal && automations
+      {showSubscribersModal && automationsElement
         ? Modal(
-            automations,
+            automationsElement,
             'Subscribed Automations',
             'Ok',
             handleSubscribersState,
@@ -576,18 +560,18 @@ export default (props: any): ReactElement => {
             handleOptionsState
           )
         : null}
-      {showAlertsOverviewModal && heatmap
+      {showAlertsOverviewModal && heatmapElement
         ? Modal(
-            <HeatmapElement>{heatmap}</HeatmapElement>,
+            <HeatmapElement>{heatmapElement}</HeatmapElement>,
             'Number of Alerts per Day',
             'Ok',
             handleAlertsOverviewState,
             handleAlertsOverviewState
           )
         : null}
-      {showAlertsModal && missedAlerts
+      {showAlertsModal && missedAlertsElement
         ? Modal(
-            missedAlerts,
+            missedAlertsElement,
             'Missed Alerts',
             'Ok',
             handleAlertsState,

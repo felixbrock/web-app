@@ -19,7 +19,9 @@ export const Content = styled.div`
   margin: auto;
   padding: 20px;
   width: 60%;
+  max-height: 80%;
   overflow: hidden;
+  overflow-y: scroll;
 `;
 
 export const Title = styled.h3`

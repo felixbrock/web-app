@@ -1,6 +1,5 @@
 import styled from 'styled-components';
-import { FaRegChartBar, FaRegCopy, FaEllipsisV} from 'react-icons/fa';
-
+import { FaRegChartBar, FaRegCopy, FaEllipsisV } from 'react-icons/fa';
 
 export const System = styled.div`
   text-align: center;
@@ -16,7 +15,9 @@ const SystemRow = styled.div`
   margin: 10px;
 `;
 
-export const Header = styled(SystemRow)``;
+export const Header = styled(SystemRow)`
+  
+`;
 
 export const MissedAlertBubble = styled.span`
   width: 20px;
@@ -68,8 +69,10 @@ export const AlertMap = styled.div`
   padding: 0px;
 
   @media screen and (max-width: 1000px) {
-    height: 30%
+    height: 30%;
   }
 `;
 
-export const Footer = styled(SystemRow)`margin: 10px`;
+export const Footer = styled(SystemRow)`
+  margin: 10px;
+`;

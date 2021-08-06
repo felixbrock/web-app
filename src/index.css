@@ -22,4 +22,5 @@ body{
   background-color: #202020;
   overflow-x: hidden;
   margin: 0;
+  word-break: break-all;
 }

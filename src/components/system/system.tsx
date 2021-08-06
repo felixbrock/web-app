@@ -22,7 +22,7 @@ export default (
   id: string,
   title: string,
   missedAlerts: number,
-  setSystemIdState: (systemId: string) => void,
+  setSystemId: (systemId: string) => void,
   setSubscribersState: (state: boolean) => void,
   setOptionsState: (state: boolean) => void,
   setAlertsOverviewState: (state: boolean) => void
@@ -34,15 +34,15 @@ export default (
   }
 
   const handleSubscribersClick = () => {
-    setSystemIdState(id);
+    setSystemId(id);
     setSubscribersState(true);
   };
   const handleOptionsClick = () => {
-    setSystemIdState(id);
+    setSystemId(id);
     setOptionsState(true);
   };
   const handleAlertsOverviewClick = () => {
-    setSystemIdState(id);
+    setSystemId(id);
     setAlertsOverviewState(true);
   };
   return (

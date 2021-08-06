@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, useEffect } from 'react';
+import React, { ReactElement, useState, useEffect, useRef } from 'react';
 import SystemComponent from '../../components/system/system';
 import {
   Systems,
@@ -14,10 +14,10 @@ import Button from '../../components/button/button';
 import Table from '../../components/table/table';
 import SystemDto from '../../infrastructure/system-api/system-dto';
 import SystemApiRepository from '../../infrastructure/system-api/system-api-repository';
-import SubscriptionApiRepository from '../../infrastructure/subscription-api/subscription-api-repository';
+import AutomationApiRepository from '../../infrastructure/automation-api/automation-api-repository';
 import AccountDto from '../../infrastructure/account-api/account-dto';
 import AccountApiRepository from '../../infrastructure/account-api/account-api-repository';
-import SubscriptionDto from '../../infrastructure/subscription-api/subscription-dto';
+import AutomationDto from '../../infrastructure/automation-api/automation-dto';
 import SelectorApiRepository from '../../infrastructure/selector-api/selector-api-repository';
 import SelectorDto from '../../infrastructure/selector-api/selector-dto';
 import {
@@ -97,18 +97,6 @@ const getHeatmapData = async (systemId: string): Promise<HeatmapData> => {
   }
 };
 
-const getSubscribedAutomations = async (
-  systemId: string
-): Promise<SubscriptionDto[]> => {
-  try {
-    return await SubscriptionApiRepository.getBy(
-      new URLSearchParams({ targetSystemId: systemId })
-    );
-  } catch (error) {
-    return Promise.reject(new Error(error.message));
-  }
-};
-
 const getOldestAlertsAccessedOnByUser = async (
   userId: string
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
@@ -123,26 +111,25 @@ const getOldestAlertsAccessedOnByUser = async (
     if (!accounts.length)
       throw new Error(`No accounts found for user ${userId}`);
 
-    const subscriptions: SubscriptionDto[] =
-      await SubscriptionApiRepository.getBy(
-        new URLSearchParams({ accountId: accounts[0].id })
-      );
+    const automations: AutomationDto[] = await AutomationApiRepository.getBy(
+      new URLSearchParams({ accountId: accounts[0].id })
+    );
 
-    subscriptions.forEach((subscription) => {
-      subscription.targets.forEach((target) => {
+    automations.forEach((automation) => {
+      automation.subscriptions.forEach((subscription) => {
         const selectorAccessedOnByUser = accessedOnByUserValues.find(
-          (value) => value.selectorId === target.selectorId
+          (value) => value.selectorId === subscription.selectorId
         );
 
         if (
           !selectorAccessedOnByUser ||
           selectorAccessedOnByUser.alertsAccessedOnByUser <
-            target.alertsAccessedOnByUser
+            subscription.alertsAccessedOnByUser
         )
           accessedOnByUserValues.push({
-            systemId: target.systemId,
-            selectorId: target.selectorId,
-            alertsAccessedOnByUser: target.alertsAccessedOnByUser,
+            systemId: subscription.systemId,
+            selectorId: subscription.selectorId,
+            alertsAccessedOnByUser: subscription.alertsAccessedOnByUser,
           });
       });
     });
@@ -159,7 +146,7 @@ const buildRow = (cards: ReactElement[]): ReactElement => (
 const buildRows = (
   systems: SystemDto[],
   alertsAccessedOnByUserValues: OldestAlertsAccessedOnByUser[],
-  handleSystemIdState: (systemId: string) => void,
+  handleSystemId: (systemId: string) => void,
   handleSubscribersState: (state: boolean) => void,
   handleOptionsState: (state: boolean) => void,
   handleAlertsOverviewState: (state: boolean) => void
@@ -193,7 +180,7 @@ const buildRows = (
           system.id,
           system.name,
           missedWarnings.length,
-          handleSystemIdState,
+          handleSystemId,
           handleSubscribersState,
           handleOptionsState,
           handleAlertsOverviewState
@@ -217,13 +204,15 @@ const buildRows = (
 };
 
 export default (): ReactElement => {
+  const initialRenderFinished = useRef(false);
+
   const [systems, setSystems] = useState<SystemDto[]>([]);
 
   const [alertsAccessedOnByUser, setAlertsAccessedOnByUser] = useState<
     OldestAlertsAccessedOnByUser[]
   >([]);
 
-  const [heatmap, setHeatmap] = useState<ReactElement>();
+  const [heatmapElement, setHeatmapElement] = useState<ReactElement>();
 
   const [showAlertsOverviewModal, setShowAlertsOverviewModal] = useState(false);
 
@@ -249,7 +238,7 @@ export default (): ReactElement => {
 
   const [systemId, setSystemId] = useState<string>('');
 
-  const handleSystemIdState = (id: string): void => {
+  const handleSystemId = (id: string): void => {
     setSystemId(id);
   };
 
@@ -258,7 +247,7 @@ export default (): ReactElement => {
   const handleSubscribersState = (): void =>
     setShowSubscribersModal(!showSubscribersModal);
 
-  const [automations, setAutomations] = useState<ReactElement>();
+  const [automationsElement, setAutomationsElement] = useState<ReactElement>();
 
   const [showOptionsModal, setShowOptionsModal] = useState(false);
 
@@ -280,9 +269,11 @@ export default (): ReactElement => {
           '65099e0f-aa7f-447b-9fda-3181c71f93f0'
         );
       })
-      .then((accessedOnByUserValues) =>
-        setAlertsAccessedOnByUser(accessedOnByUserValues)
-      )
+      .then((accessedOnByUserValues) =>{
+        setAlertsAccessedOnByUser(accessedOnByUserValues);
+        if (!initialRenderFinished.current)
+          initialRenderFinished.current = true;
+      })
       .catch((error) => {
         setSystemError(error.message);
         setShowErrorModal(true);
@@ -292,20 +283,23 @@ export default (): ReactElement => {
   useEffect(renderSystems, []);
 
   useEffect(() => {
+    if (!initialRenderFinished.current) return;
     if (!showSubscribersModal) {
-      setAutomations(undefined);
+      setAutomationsElement(undefined);
       return;
     }
 
-    getSubscribedAutomations(systemId)
+    AutomationApiRepository.getBy(
+      new URLSearchParams({ subscriptionSystemId: systemId })
+    )
       .then((automationElements) => {
         const content: string[][] = automationElements.map((automation) => [
-          automation.automationName,
+          automation.name,
           automation.id,
         ]);
         const headers: string[] = content.length ? ['Name', 'Id'] : [];
 
-        setAutomations(Table(headers, content));
+        setAutomationsElement(Table(headers, content));
       })
       .catch((error) => {
         setSystemError(error.message);
@@ -314,7 +308,7 @@ export default (): ReactElement => {
   }, [showSubscribersModal]);
 
   useEffect(() => {
-    if (!registrationSubmit) return;
+    if (!registrationSubmit || !initialRenderFinished.current) return;
 
     SystemApiRepository.post(systemName)
       .then((system) => {
@@ -350,14 +344,14 @@ export default (): ReactElement => {
   }, [registrationSubmit]);
 
   useEffect(() => {
-    if (!showRegistrationModal) {
+    if (!showRegistrationModal && initialRenderFinished.current) {
       setSelectorContent('');
       setSystemName('');
     }
   }, [showRegistrationModal]);
 
   useEffect(() => {
-    if (!toDelete) return;
+    if (!toDelete || !initialRenderFinished.current) return;
 
     SystemApiRepository.delete(systemId)
       .then((deleted) => {
@@ -378,13 +372,14 @@ export default (): ReactElement => {
   }, [toDelete]);
 
   useEffect(() => {
+    if (!initialRenderFinished.current) return;
     if (!showAlertsOverviewModal) {
-      setHeatmap(undefined);
+      setHeatmapElement(undefined);
       return;
     }
 
     getHeatmapData(systemId)
-      .then((heatmapData) => setHeatmap(Heatmap(heatmapData)))
+      .then((heatmapData) => setHeatmapElement(Heatmap(heatmapData)))
       .catch((error) => {
         setSystemError(error.message);
         setShowErrorModal(true);
@@ -396,7 +391,7 @@ export default (): ReactElement => {
       {buildRows(
         systems,
         alertsAccessedOnByUser,
-        handleSystemIdState,
+        handleSystemId,
         handleSubscribersState,
         handleOptionsState,
         handleAlertsOverviewState
@@ -427,9 +422,9 @@ export default (): ReactElement => {
             handleRegistrationSubmit
           )
         : null}
-      {showSubscribersModal && automations
+      {showSubscribersModal && automationsElement
         ? Modal(
-            automations,
+            automationsElement,
             'Subscribed Automations',
             'Ok',
             handleSubscribersState,
@@ -445,9 +440,9 @@ export default (): ReactElement => {
             handleOptionsState
           )
         : null}
-      {showAlertsOverviewModal && heatmap
+      {showAlertsOverviewModal && heatmapElement
         ? Modal(
-            <HeatmapElement>{heatmap}</HeatmapElement>,
+            <HeatmapElement>{heatmapElement}</HeatmapElement>,
             'Number of Alerts per Day',
             'Ok',
             handleAlertsOverviewState,
