@@ -1,4 +1,4 @@
-# demo-frontend
+# web-app
 
 Setup
 npx create-react-app my-app --template typescript
