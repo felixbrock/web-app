@@ -29,7 +29,7 @@ export default (): ReactElement => (
           {/* <NavBtnLink to='/sign-in'>Sign In</NavBtnLink> */}
         </NavMenu>
         <NavBtn>
-          <NavBtnLink to='/sign-in'>Sign In</NavBtnLink>
+          <NavBtnLink to='/sign-in'>Account</NavBtnLink>
         </NavBtn>
       </Nav>
   );

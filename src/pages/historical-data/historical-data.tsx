@@ -80,10 +80,6 @@ const getHistoricalData = async (date: Date): Promise<string[][]> => {
   try {
     const selectors = await getDateSelectors(startDate, endDate);
 
-    console.log(selectors);
-    console.log(startDate.toISOString());
-    console.log(endDate.toISOString());
-
     const datasets = await Promise.all(
       selectors.map(async (selector) => {
         const system = await SystemApiRepository.getOne(selector.systemId);

@@ -83,10 +83,9 @@ const updateAlertAccessedOnValues = async (
   selectorId: string
 ): Promise<SubscriptionDto[]> => {
   try {
-    const accounts: AccountDto[] =
-      await AccountApiRepository.getAccountsByUserId(
-        new URLSearchParams({ userId })
-      );
+    const accounts: AccountDto[] = await AccountApiRepository.getBy(
+      new URLSearchParams({ userId })
+    );
 
     if (!accounts.length)
       throw new Error(`No accounts found for user ${userId}`);
@@ -97,25 +96,29 @@ const updateAlertAccessedOnValues = async (
 
     const updatedSubscriptions: SubscriptionDto[] = [];
 
-    await Promise.all(automations.map(async (automation) => {
-      const subscription = automation.subscriptions.find(
-        (element) => element.selectorId === selectorId
-      );
-
-      if (!subscription) return;
-
-      const updatedEntities = await AutomationApiRepository.updateSubscriptions(
-        automation.id,
-        [{ selectorId, alertsAccessedOnByUser: Date.now() }]
-      );
-
-      if (!updatedSubscriptions || !updatedSubscriptions.length)
-        throw new Error(
-          `Update of subscription for selector ${selectorId} in context of automation ${automation.id} failed`
+    await Promise.all(
+      automations.map(async (automation) => {
+        const subscription = automation.subscriptions.find(
+          (element) => element.selectorId === selectorId
         );
 
-      updatedEntities.forEach((element) => updatedSubscriptions.push(element));
-    }));
+        if (!subscription) return;
+
+        const updatedEntities =
+          await AutomationApiRepository.updateSubscriptions(automation.id, [
+            { selectorId, alertsAccessedOnByUser: Date.now() },
+          ]);
+
+        updatedEntities.forEach((element) =>
+          updatedSubscriptions.push(element)
+        );
+
+        if (!updatedSubscriptions || !updatedSubscriptions.length)
+          throw new Error(
+            `Update of subscription for selector ${selectorId} in context of automation ${automation.id} failed`
+          );
+      })
+    );
 
     return updatedSubscriptions;
   } catch (error) {
@@ -130,10 +133,9 @@ const getOldestAlertsAccessedOnByUser = async (
   const accessedOnByUserValues: OldestAlertsAccessedOnByUser[] = [];
 
   try {
-    const accounts: AccountDto[] =
-      await AccountApiRepository.getAccountsByUserId(
-        new URLSearchParams({ userId })
-      );
+    const accounts: AccountDto[] = await AccountApiRepository.getBy(
+      new URLSearchParams({ userId })
+    );
 
     if (!accounts.length)
       throw new Error(`No accounts found for user ${userId}`);
@@ -154,18 +156,25 @@ const getOldestAlertsAccessedOnByUser = async (
           (value) => value.selectorId === subscription.selectorId
         );
 
-        if (
-          !selectorAccessedOnByUser ||
-          selectorAccessedOnByUser.alertsAccessedOnByUser <
-            subscription.alertsAccessedOnByUser
-        )
+        if (!selectorAccessedOnByUser)
           accessedOnByUserValues.push({
             selectorId: subscription.selectorId,
             alertsAccessedOnByUser: subscription.alertsAccessedOnByUser,
           });
+        else if (
+          subscription.alertsAccessedOnByUser <
+          selectorAccessedOnByUser.alertsAccessedOnByUser
+        ) {
+          const index = accessedOnByUserValues.findIndex(
+            (element) => element.selectorId === subscription.selectorId
+          );
+          accessedOnByUserValues[index] = {
+            selectorId: subscription.selectorId,
+            alertsAccessedOnByUser: subscription.alertsAccessedOnByUser,
+          };
+        }
       });
     });
-
     return accessedOnByUserValues;
   } catch (error) {
     return Promise.reject(new Error(error.message));
@@ -467,7 +476,8 @@ export default (props: any): ReactElement => {
   }, [automationSubscribe]);
 
   useEffect(() => {
-    if (!showSubscribeModal && initialRenderFinished.current) setAutomationId('');
+    if (!showSubscribeModal && initialRenderFinished.current)
+      setAutomationId('');
   }, [showSubscribeModal]);
 
   useEffect(() => {

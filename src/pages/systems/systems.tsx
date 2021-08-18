@@ -128,10 +128,9 @@ const getOldestAlertsAccessedOnByUser = async (
   const accessedOnByUserValues: OldestAlertsAccessedOnByUser[] = [];
 
   try {
-    const accounts: AccountDto[] =
-      await AccountApiRepository.getAccountsByUserId(
-        new URLSearchParams({ userId })
-      );
+    const accounts: AccountDto[] = await AccountApiRepository.getBy(
+      new URLSearchParams({ userId })
+    );
 
     if (!accounts.length)
       throw new Error(`No accounts found for user ${userId}`);
@@ -146,18 +145,28 @@ const getOldestAlertsAccessedOnByUser = async (
           (value) => value.selectorId === subscription.selectorId
         );
 
-        if (
-          !selectorAccessedOnByUser ||
-          selectorAccessedOnByUser.alertsAccessedOnByUser <
-            subscription.alertsAccessedOnByUser
-        )
+        if (!selectorAccessedOnByUser)
           accessedOnByUserValues.push({
             systemId: subscription.systemId,
             selectorId: subscription.selectorId,
             alertsAccessedOnByUser: subscription.alertsAccessedOnByUser,
           });
+        else if (
+          subscription.alertsAccessedOnByUser <
+          selectorAccessedOnByUser.alertsAccessedOnByUser
+        ) {
+          const index = accessedOnByUserValues.findIndex(
+            (element) => element.selectorId === subscription.selectorId
+          );
+          accessedOnByUserValues[index] = {
+            systemId: subscription.systemId,
+            selectorId: subscription.selectorId,
+            alertsAccessedOnByUser: subscription.alertsAccessedOnByUser,
+          };
+        }
       });
     });
+    
     return accessedOnByUserValues;
   } catch (error) {
     return Promise.reject(new Error(error.message));
@@ -294,7 +303,7 @@ export default (): ReactElement => {
           '65099e0f-aa7f-447b-9fda-3181c71f93f0'
         );
       })
-      .then((accessedOnByUserValues) =>{
+      .then((accessedOnByUserValues) => {
         setAlertsAccessedOnByUser(accessedOnByUserValues);
         if (!initialRenderFinished.current)
           initialRenderFinished.current = true;
@@ -343,10 +352,11 @@ export default (): ReactElement => {
           `System ${systemName} sucessfully created under id ${system.id}`
         );
 
+        // TODO - This seems like a workaround. Need to be fixed
         if (!selectorContent || isWhitespaceString(selectorContent))
-          return null;
+          throw new Error('');
 
-        return SelectorApiRepository.post(selectorContent, systemId);
+        return SelectorApiRepository.post(selectorContent, system.id);
       })
       .then((selector) => {
         if (!selector)
@@ -363,6 +373,9 @@ export default (): ReactElement => {
       .catch((error) => {
         renderSystems();
         setRegistrationSubmit(false);
+
+        if (!error.message) return;
+
         setSystemError(error.message);
         setShowErrorModal(true);
       });

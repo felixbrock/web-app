@@ -5,7 +5,7 @@ const apiRoot = 'http://localhost:8081/api/v1';
 
 // TODO - Implement Interface regarding clean architecture
 export default class AccountApiRepositoryImpl {
-  public static getAccountsByUserId = async (params: URLSearchParams): Promise<AccountDto[]> => {
+  public static getBy = async (params: URLSearchParams): Promise<AccountDto[]> => {
     try {
       const response = await axios.get(`${apiRoot}/accounts`, {params});
       const jsonResponse = response.data;

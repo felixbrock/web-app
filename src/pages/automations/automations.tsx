@@ -33,7 +33,7 @@ import SubscriptionDto from '../../infrastructure/automation-api/subscription-dt
 import AlertDto from '../../infrastructure/selector-api/alert-dto';
 
 interface OldestAlertsAccessedOnByUser {
-  automationId: string;
+  automationIds: string[];
   selectorId: string;
   alertsAccessedOnByUser: number;
 }
@@ -177,10 +177,9 @@ const getOldestAlertsAccessedOnByUser = async (
   const accessedOnByUserElements: OldestAlertsAccessedOnByUser[] = [];
 
   try {
-    const accounts: AccountDto[] =
-      await AccountApiRepository.getAccountsByUserId(
-        new URLSearchParams({ userId })
-      );
+    const accounts: AccountDto[] = await AccountApiRepository.getBy(
+      new URLSearchParams({ userId })
+    );
 
     if (!accounts.length)
       throw new Error(`No accounts found for user ${userId}`);
@@ -195,16 +194,32 @@ const getOldestAlertsAccessedOnByUser = async (
           (element) => element.selectorId === subscription.selectorId
         );
 
-        if (
-          !selectorAccessedOnByUser ||
-          selectorAccessedOnByUser.alertsAccessedOnByUser <
-            subscription.alertsAccessedOnByUser
-        )
+        if (!selectorAccessedOnByUser)
           accessedOnByUserElements.push({
-            automationId: automation.id,
+            automationIds: [automation.id],
             selectorId: subscription.selectorId,
             alertsAccessedOnByUser: subscription.alertsAccessedOnByUser,
           });
+        else if (
+          subscription.alertsAccessedOnByUser <
+          selectorAccessedOnByUser.alertsAccessedOnByUser
+        ) {
+
+          const index = accessedOnByUserElements.findIndex(
+            (element) => element.selectorId === subscription.selectorId
+          );
+
+            const {automationIds} = selectorAccessedOnByUser;
+            if(!automationIds.includes(
+              automation.id
+            )) automationIds.push(automation.id);
+
+          accessedOnByUserElements[index] = {
+            automationIds,
+            selectorId: subscription.selectorId,
+            alertsAccessedOnByUser: subscription.alertsAccessedOnByUser,
+          };
+        }
       });
     });
     return accessedOnByUserElements;
@@ -217,9 +232,14 @@ const buildRow = (cards: ReactElement[]): ReactElement => (
   <AutomationRow>{cards}</AutomationRow>
 );
 
+interface AutomationSelectors {
+  id: string;
+  selectors: SelectorDto[];
+}
+
 const buildRows = (
   automations: AutomationDto[],
-  selectors: SelectorDto[],
+  selectors: AutomationSelectors[],
   alertsAccessedOnByUserElements: OldestAlertsAccessedOnByUser[],
   handleAutomationId: (automationId: string) => void,
   handleSubscriptionsState: (state: boolean) => void,
@@ -235,12 +255,19 @@ const buildRows = (
   automations.forEach((automation) => {
     const automationAccessedOnElements: OldestAlertsAccessedOnByUser[] =
       alertsAccessedOnByUserElements.filter(
-        (element) => element.automationId === automation.id
+        (element) => element.automationIds.includes(automation.id)
       );
 
     const missedAlerts: AlertDto[] = automationAccessedOnElements.flatMap(
       (element) => {
-        const selector = selectors.find(
+        const automationSelectors = selectors.find(
+          (selector) => selector.id === automation.id
+        );
+
+        if (!automationSelectors || !automationSelectors.selectors.length)
+          return [];
+
+        const selector = automationSelectors.selectors.find(
           (selectorElement) => selectorElement.id === element.selectorId
         );
 
@@ -289,7 +316,9 @@ export default (): ReactElement => {
 
   const [automations, setAutomations] = useState<AutomationDto[]>([]);
 
-  const [selectors, setSelectors] = useState<SelectorDto[]>([]);
+  const [selectors, setSelectors] = useState<
+    { id: string; selectors: SelectorDto[] }[]
+  >([]);
 
   const [alertsAccessedOnByUser, setAlertsAccessedOnByUser] = useState<
     OldestAlertsAccessedOnByUser[]
@@ -399,18 +428,21 @@ export default (): ReactElement => {
 
   useEffect(() => {
     Promise.all(
-      automations.flatMap((automation) =>
-        automation.subscriptions.map(async (subscription) => {
-          const selector = await SelectorApiRepository.getOne(
-            subscription.selectorId
-          );
+      automations.map(async (automation) => ({
+        id: automation.id,
+        selectors: await Promise.all(
+          automation.subscriptions.map(async (subscription) => {
+            const selector = await SelectorApiRepository.getOne(
+              subscription.selectorId
+            );
 
-          if (!selector)
-            throw new Error(`Selector ${subscription.selectorId} not found`);
+            if (!selector)
+              throw new Error(`Selector ${subscription.selectorId} not found`);
 
-          return selector;
-        })
-      )
+            return selector;
+          })
+        ),
+      }))
     )
       .then((selectorElements) => {
         setSelectors(selectorElements);
@@ -482,25 +514,9 @@ export default (): ReactElement => {
         const numOfDeletedSubscriptions = results.filter(
           (result) => result
         ).length;
-        if (!numOfDeletedSubscriptions) return null;
-        return AutomationApiRepository.getOne(automationId);
-      })
-      .then((automation) => {
-        if (!automation) {
-          setIsSubscribedValues({});
-          setSubscriptionsSubmit(false);
-          return;
-        }
-        const automationElements = automations;
+        if (!numOfDeletedSubscriptions) return;
 
-        const modifiedElements = automationElements.map((automationElement) => {
-          const automationToReplace = automationElements.find(
-            (element) => element.id === automationId
-          );
-          if (automation && automationToReplace) return automation;
-          return automationElement;
-        });
-        setAutomations(modifiedElements);
+        renderAutomations();
 
         setIsSubscribedValues({});
         setSubscriptionsSubmit(false);
@@ -540,7 +556,14 @@ export default (): ReactElement => {
     try {
       const tableContent: string[][] = automation.subscriptions.flatMap(
         (subscription) => {
-          const selector = selectors.find(
+          const automationSelectors = selectors.find(
+            (element) => element.id === automation.id
+          );
+
+          if (!automationSelectors || !automationSelectors.selectors.length)
+            return [];
+
+          const selector = automationSelectors.selectors.find(
             (element) => element.id === subscription.selectorId
           );
 
@@ -641,7 +664,16 @@ export default (): ReactElement => {
       return;
     }
 
-    const heatmapData = getHeatmapData(selectors);
+    const automationSelectors = selectors.find(
+      (element) => element.id === automationId
+    );
+
+    if (!automationSelectors || !automationSelectors.selectors.length) {
+      setHeatmapElement(Heatmap(getHeatmapData([])));
+      return;
+    }
+
+    const heatmapData = getHeatmapData(automationSelectors.selectors);
     setHeatmapElement(Heatmap(heatmapData));
   }, [showAlertsOverviewModal]);
 
