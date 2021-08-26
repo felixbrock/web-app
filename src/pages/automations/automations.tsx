@@ -1,4 +1,5 @@
 import React, { ReactElement, useState, useEffect, useRef } from 'react';
+import { Auth } from 'aws-amplify';
 import AutomationComponent from '../../components/automation/automation';
 import {
   AutomationColumn,
@@ -405,24 +406,38 @@ export default (): ReactElement => {
 
   const handleErrorState = (): void => setShowErrorModal(!showErrorModal);
 
-  const [automationError, setAutomationError] = useState('');
+  const [systemError, setSystemError] = useState('');
+
+  const [user, setUser] = useState();
 
   const renderAutomations = () => {
-    AutomationApiRepository.getAll()
-      .then((automationDtos) => {
-        setAutomations(automationDtos);
-        return getOldestAlertsAccessedOnByUser(
-          '65099e0f-aa7f-447b-9fda-3181c71f93f0'
-        );
-      })
-      .then((accessedOnByUserElements) => {
-        setAlertsAccessedOnByUser(accessedOnByUserElements);
-      })
+    Auth.currentAuthenticatedUser()
+      .then((cognitoUser) => setUser(cognitoUser))
       .catch((error) => {
-        setAutomationError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
+
+        Auth.federatedSignIn();
       });
   };
+
+  useEffect(()=>{
+    AutomationApiRepository.getAll()
+    .then((automationDtos) => {
+      setAutomations(automationDtos);
+      return getOldestAlertsAccessedOnByUser(
+        '65099e0f-aa7f-447b-9fda-3181c71f93f0'
+      );
+    })
+    .then((accessedOnByUserElements) => {
+      setAlertsAccessedOnByUser(accessedOnByUserElements);
+    })
+    .catch((error) => {
+      setSystemError(typeof error === 'string' ? error : error.message);
+      setShowErrorModal(true);
+    });
+
+  }, [user]);
 
   useEffect(renderAutomations, []);
 
@@ -450,7 +465,7 @@ export default (): ReactElement => {
           initialRenderFinished.current = true;
       })
       .catch((error) => {
-        setAutomationError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [automations]);
@@ -479,7 +494,7 @@ export default (): ReactElement => {
         setSubscriptionsElement(Table(headers, subscriptionElements));
       })
       .catch((error) => {
-        setAutomationError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [showSubscriptionsModal]);
@@ -522,7 +537,7 @@ export default (): ReactElement => {
         setSubscriptionsSubmit(false);
       })
       .catch((error) => {
-        setAutomationError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [subscriptionsSubmit]);
@@ -535,7 +550,7 @@ export default (): ReactElement => {
     );
 
     if (!automation) {
-      setAutomationError(`Automation ${automationId} not found`);
+      setSystemError(`Automation ${automationId} not found`);
       setShowErrorModal(true);
       return;
     }
@@ -546,7 +561,7 @@ export default (): ReactElement => {
       updateAlertAccessedOnValues(automationId, automation.subscriptions)
         .then(() => renderAutomations())
         .catch((error) => {
-          setAutomationError(error.message);
+          setSystemError(typeof error === 'string' ? error : error.message);
           setShowErrorModal(true);
           renderAutomations();
         });
@@ -597,7 +612,7 @@ export default (): ReactElement => {
 
       setMissedAlertsElement(Table(tableHeaders, tableContent));
     } catch (error) {
-      setAutomationError(error.message);
+      setSystemError(typeof error === 'string' ? error : error.message);
       setShowErrorModal(true);
     }
   }, [showAlertsModal]);
@@ -623,7 +638,7 @@ export default (): ReactElement => {
       .catch((error) => {
         renderAutomations();
         setRegistrationSubmit(false);
-        setAutomationError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [registrationSubmit]);
@@ -652,7 +667,7 @@ export default (): ReactElement => {
       })
       .catch((error) => {
         setToDelete(false);
-        setAutomationError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [toDelete]);
@@ -754,9 +769,9 @@ export default (): ReactElement => {
             handleAlertsOverviewState
           )
         : null}
-      {showErrorModal && automationError
+      {showErrorModal && systemError
         ? Modal(
-            <p>{automationError}</p>,
+            <p>{systemError}</p>,
             'An error occurred',
             'Ok',
             handleErrorState,

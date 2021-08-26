@@ -1,4 +1,5 @@
 import React, { ReactElement, useState, useRef, useEffect } from 'react';
+import { Auth } from 'aws-amplify';
 import SelectorComponent from '../../components/selector/selector';
 import {
   Selectors,
@@ -324,7 +325,22 @@ export default (props: any): ReactElement => {
 
   const [systemError, setSystemError] = useState('');
 
+  const [user, setUser] = useState();
+
   const renderSelectors = () => {
+    Auth.currentAuthenticatedUser()
+      .then((cognitoUser) => setUser(cognitoUser))
+      .catch((error) => {
+        setSystemError(typeof error === 'string' ? error : error.message);
+        setShowErrorModal(true);
+
+        Auth.federatedSignIn();
+      });
+  };
+
+  useEffect(() => {
+    if (!user) return;
+
     SelectorApiRepository.getBy(new URLSearchParams({ systemId }))
       .then((selectorDtos) => {
         setSelectors(selectorDtos);
@@ -339,10 +355,10 @@ export default (props: any): ReactElement => {
           initialRenderFinished.current = true;
       })
       .catch((error) => {
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
-  };
+  }, [user]);
 
   useEffect(renderSelectors, []);
 
@@ -367,7 +383,7 @@ export default (props: any): ReactElement => {
         setAutomationsElement(Table(tableHeaders, tableContent));
       })
       .catch((error) => {
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [showSubscribersModal]);
@@ -382,7 +398,7 @@ export default (props: any): ReactElement => {
       )
         .then(() => renderSelectors())
         .catch((error) => {
-          setSystemError(error.message);
+          setSystemError(typeof error === 'string' ? error : error.message);
           setShowErrorModal(true);
           renderSelectors();
         });
@@ -440,7 +456,7 @@ export default (props: any): ReactElement => {
       })
       .catch((error) => {
         setRegistrationSubmit(false);
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [registrationSubmit]);
@@ -470,7 +486,7 @@ export default (props: any): ReactElement => {
       .catch((error) => {
         setAutomationId('');
         setAutomationSubscribe(false);
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [automationSubscribe]);
@@ -501,7 +517,7 @@ export default (props: any): ReactElement => {
       })
       .catch((error) => {
         setToDelete(false);
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [toDelete]);

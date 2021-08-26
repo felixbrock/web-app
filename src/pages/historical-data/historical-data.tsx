@@ -1,4 +1,5 @@
 import React, { ReactElement, useState, useRef, useEffect } from 'react';
+import { Auth } from 'aws-amplify';
 import { Input, FieldLabel } from '../../components/form/form-items';
 import { HistoricalData } from './historical-data-items';
 import Modal from '../../components/modal/modal';
@@ -138,9 +139,22 @@ export default (): ReactElement => {
 
   const handleErrorState = (): void => setShowErrorModal(!showErrorModal);
 
-  const [historicDataError, setHistoricDataError] = useState('');
+  const [systemError, setSystemError] = useState('');
+
+  const [user, setUser] = useState();
 
   const renderHistoricalData = () => {
+    Auth.currentAuthenticatedUser()
+      .then((cognitoUser) => setUser(cognitoUser))
+      .catch((error) => {
+        setSystemError(typeof error === 'string' ? error : error.message);
+        setShowErrorModal(true);
+
+        Auth.federatedSignIn();
+      });
+  };
+
+  useEffect( () => {
     getHistoricalData(new Date(date))
       .then((datasets) => {
         setDataAvailable(!!datasets.length);
@@ -160,10 +174,10 @@ export default (): ReactElement => {
           initialRenderFinished.current = true;
       })
       .catch((error) => {
-        setHistoricDataError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
-  };
+  }, [user]);
 
   useEffect(renderHistoricalData, []);
 
@@ -190,9 +204,9 @@ export default (): ReactElement => {
         </FieldLabel>
       )}
       {table}
-      {showErrorModal && historicDataError
+      {showErrorModal && systemError
         ? Modal(
-            <p>{historicDataError}</p>,
+            <p>{systemError}</p>,
             'An error occurred',
             'Ok',
             handleErrorState,

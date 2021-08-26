@@ -61,7 +61,7 @@ export const NavMenu = styled.div`
   }
 `;
 
-export const NavBtn = styled.nav`
+export const NavBtn = styled.button`
   display: flex;
   align-items: center;
   margin-right: 24px;
@@ -71,6 +71,25 @@ export const NavBtn = styled.nav`
   /* Third Nav */
   /* justify-content: flex-end;
   width: 100vw; */
+
+  border-radius: 4px;
+  background: #2c25ff;
+  padding: 10px 22px;
+  color: #fff;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+
+  /* Second Nav */
+  margin-left: 24px;
+
+  &:hover {
+    transition: all 0.2s ease-in-out;
+    background: #fff;
+    color: #010606;
+  }
 
   @media screen and (max-width: 768px) {
     display: none;

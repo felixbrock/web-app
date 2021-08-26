@@ -1,4 +1,5 @@
 import React, { ReactElement, useState, useEffect, useRef } from 'react';
+import { Auth } from 'aws-amplify';
 import SystemComponent from '../../components/system/system';
 import {
   Systems,
@@ -166,7 +167,7 @@ const getOldestAlertsAccessedOnByUser = async (
         }
       });
     });
-    
+
     return accessedOnByUserValues;
   } catch (error) {
     return Promise.reject(new Error(error.message));
@@ -295,7 +296,24 @@ export default (): ReactElement => {
 
   const [systemError, setSystemError] = useState('');
 
+  const [user, setUser] = useState();
+
   const renderSystems = () => {
+    Auth.currentAuthenticatedUser()
+      .then((cognitoUser) => setUser(cognitoUser))
+      .catch((error) => {
+        setSystemError(typeof error === 'string' ? error : error.message);
+        setShowErrorModal(true);
+
+        Auth.federatedSignIn();
+      });
+  };
+
+  useEffect(renderSystems, []);
+
+  useEffect(() => {
+    if (!user) return;
+
     SystemApiRepository.getAll()
       .then((systemDtos) => {
         setSystems(systemDtos);
@@ -309,12 +327,10 @@ export default (): ReactElement => {
           initialRenderFinished.current = true;
       })
       .catch((error) => {
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
-  };
-
-  useEffect(renderSystems, []);
+  }, [user]);
 
   useEffect(() => {
     if (!initialRenderFinished.current) return;
@@ -336,7 +352,7 @@ export default (): ReactElement => {
         setAutomationsElement(Table(headers, content));
       })
       .catch((error) => {
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [showSubscribersModal]);
@@ -376,7 +392,7 @@ export default (): ReactElement => {
 
         if (!error.message) return;
 
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [registrationSubmit]);
@@ -404,7 +420,7 @@ export default (): ReactElement => {
       })
       .catch((error) => {
         setToDelete(false);
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [toDelete]);
@@ -419,7 +435,7 @@ export default (): ReactElement => {
     getHeatmapData(systemId)
       .then((heatmapData) => setHeatmapElement(Heatmap(heatmapData)))
       .catch((error) => {
-        setSystemError(error.message);
+        setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
   }, [showAlertsOverviewModal]);
