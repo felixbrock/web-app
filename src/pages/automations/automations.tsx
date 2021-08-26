@@ -408,7 +408,7 @@ export default (): ReactElement => {
 
   const [systemError, setSystemError] = useState('');
 
-  const [user, setUser] = useState();
+  const [user, setUser] = useState<any>();
 
   const renderAutomations = () => {
     Auth.currentAuthenticatedUser()
@@ -426,7 +426,7 @@ export default (): ReactElement => {
     .then((automationDtos) => {
       setAutomations(automationDtos);
       return getOldestAlertsAccessedOnByUser(
-        '65099e0f-aa7f-447b-9fda-3181c71f93f0'
+        user.username
       );
     })
     .then((accessedOnByUserElements) => {

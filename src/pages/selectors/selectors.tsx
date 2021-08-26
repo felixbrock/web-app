@@ -325,7 +325,7 @@ export default (props: any): ReactElement => {
 
   const [systemError, setSystemError] = useState('');
 
-  const [user, setUser] = useState();
+  const [user, setUser] = useState<any>();
 
   const renderSelectors = () => {
     Auth.currentAuthenticatedUser()
@@ -338,6 +338,8 @@ export default (props: any): ReactElement => {
       });
   };
 
+  useEffect(renderSelectors, []);
+
   useEffect(() => {
     if (!user) return;
 
@@ -345,7 +347,7 @@ export default (props: any): ReactElement => {
       .then((selectorDtos) => {
         setSelectors(selectorDtos);
         return getOldestAlertsAccessedOnByUser(
-          '65099e0f-aa7f-447b-9fda-3181c71f93f0',
+          user.username,
           selectorDtos.map((selectorDto) => selectorDto.id)
         );
       })
@@ -359,8 +361,6 @@ export default (props: any): ReactElement => {
         setShowErrorModal(true);
       });
   }, [user]);
-
-  useEffect(renderSelectors, []);
 
   useEffect(() => {
     if (!initialRenderFinished.current) return;
@@ -393,7 +393,7 @@ export default (props: any): ReactElement => {
     if (!showAlertsModal) {
       setMissedAlertsElement(undefined);
       updateAlertAccessedOnValues(
-        '65099e0f-aa7f-447b-9fda-3181c71f93f0',
+        user.username,
         selectorId
       )
         .then(() => renderSelectors())

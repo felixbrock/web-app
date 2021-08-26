@@ -296,7 +296,7 @@ export default (): ReactElement => {
 
   const [systemError, setSystemError] = useState('');
 
-  const [user, setUser] = useState();
+  const [user, setUser] = useState<any>();
 
   const renderSystems = () => {
     Auth.currentAuthenticatedUser()
@@ -312,13 +312,13 @@ export default (): ReactElement => {
   useEffect(renderSystems, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) return;  
 
     SystemApiRepository.getAll()
       .then((systemDtos) => {
         setSystems(systemDtos);
         return getOldestAlertsAccessedOnByUser(
-          '65099e0f-aa7f-447b-9fda-3181c71f93f0'
+          user.username
         );
       })
       .then((accessedOnByUserValues) => {
