@@ -39,7 +39,7 @@ export default (): ReactElement => {
       // },
     },
     oauth: {
-      domain: 'hivedive.auth.eu-central-1.amazoncognito.com',
+      domain: 'auth.hivedive.io',
       scope: ['email', 'openid'],
       redirectSignIn: 'https://app.hivedive.io',
       redirectSignOut: 'https://hivedive.io',
