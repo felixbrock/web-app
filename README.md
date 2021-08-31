@@ -3,18 +3,14 @@
 Setup
 npx create-react-app my-app --template typescript
 
-(https://github.com/typescript-eslint/typescript-eslint/blob/master/docs/getting-started/linting/README.md)
-(https://eslint.org/blog/2019/01/future-typescript-eslint)
-eslint: npm i --save-dev eslint typescript @typescript-eslint/parser @typescript-eslint/eslint-plugin
+npm i -D eslint-config-airbnb
 
-(https://github.com/iamturns/eslint-config-airbnb-typescript)
-eslint: npm install eslint-config-airbnb-typescript --save-dev
+INSTALL ALL: npm info "eslint-config-airbnb-base@latest" peerDependencies
 
-(Check which versions are required. See output of previous command. Maybe installing without versions?)
-eslint: npm install eslint-plugin-import --save-dev
-eslint: npm install eslint-plugin-jsx-a11y --save-dev
-eslint: npm install eslint-plugin-react --save-dev
-eslint: npm install eslint-plugin-react-hooks --save-dev
+CHECK FOR RIGHT VERSIONS AT: https://www.npmjs.com/package/eslint-config-airbnb-typescript
+npm i -D eslint-config-airbnb-typescript
+npm i -D @typescript-eslint/eslint-plugin@^???
+npm i -D @typescript-eslint/parser@^???
 
 (https://prettier.io/docs/en/install.html)
 prettier: npm install --save-dev --save-exact prettier
