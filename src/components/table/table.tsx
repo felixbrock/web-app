@@ -7,6 +7,7 @@ export default (headers: string[], rows: any[][]): ReactElement => {
     <TH>{header}</TH>
   ));
 
+  // eslint-disable-next-line react/destructuring-assignment
   const rowElements: ReactElement[] = rows.map((row) => (
     <TR>
       {row.map((cell) => (

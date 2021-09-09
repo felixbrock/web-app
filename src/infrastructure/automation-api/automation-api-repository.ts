@@ -1,8 +1,8 @@
 import axios from 'axios';
+import { nodeEnv, serviceDiscoveryNamespace } from '../../config';
 import AutomationDto from './automation-dto';
 import SubscriptionDto from './subscription-dto';
-
-const apiRoot = 'http://localhost:8080/api/v1';
+import discoverIp from '../shared/service-discovery';
 
 export interface UpdateSubscriptionRequestObject {
   selectorId: string;
@@ -11,13 +11,32 @@ export interface UpdateSubscriptionRequestObject {
 
 // TODO - Implement Interface regarding clean architecture
 export default class AutomationApiRepositoryImpl {
+  private static getRoot = async (): Promise<string> => {
+    const path = 'api/v1';
+
+    if (nodeEnv !== 'production') return `http://localhost:8080/${path}`;
+
+    try {
+      const ip = await discoverIp(
+        serviceDiscoveryNamespace,
+        'automation-service'
+      );
+
+      return `http://${ip}/${path}`;
+    } catch (error: any) {
+      return Promise.reject(typeof error === 'string' ? error : error.message);
+    }
+  };
+
   public static getAll = async (): Promise<AutomationDto[]> => {
     try {
+      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+
       const response = await axios.get(`${apiRoot}/automations`);
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
-    } catch (error) {
+    } catch (error: any) {
       return Promise.reject(new Error(error.response.data.message));
     }
   };
@@ -26,11 +45,13 @@ export default class AutomationApiRepositoryImpl {
     automationId: string
   ): Promise<AutomationDto | null> => {
     try {
+      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+
       const response = await axios.get(`${apiRoot}/automation/${automationId}`);
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
-    } catch (error) {
+    } catch (error: any) {
       return Promise.reject(new Error(error.response.data.message));
     }
   };
@@ -39,11 +60,13 @@ export default class AutomationApiRepositoryImpl {
     params: URLSearchParams
   ): Promise<AutomationDto[]> => {
     try {
+      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+
       const response = await axios.get(`${apiRoot}/automations`, { params });
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
-    } catch (error) {
+    } catch (error: any) {
       return Promise.reject(new Error(error.response.data.message));
     }
   };
@@ -53,6 +76,8 @@ export default class AutomationApiRepositoryImpl {
     accountId: string
   ): Promise<AutomationDto | null> => {
     try {
+      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+
       const response = await axios.post(`${apiRoot}/automation`, {
         name,
         accountId,
@@ -60,18 +85,22 @@ export default class AutomationApiRepositoryImpl {
       const jsonResponse = response.data;
       if (response.status === 201) return jsonResponse;
       throw new Error(jsonResponse);
-    } catch (error) {
+    } catch (error: any) {
       return Promise.reject(new Error(error.response.data.message));
     }
   };
 
   public static delete = async (automationId: string): Promise<boolean> => {
     try {
-      const response = await axios.delete(`${apiRoot}/automation/${automationId}`);
+      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+
+      const response = await axios.delete(
+        `${apiRoot}/automation/${automationId}`
+      );
       const jsonResponse = response.data;
       if (response.status === 200) return true;
       throw new Error(jsonResponse);
-    } catch (error) {
+    } catch (error: any) {
       return Promise.reject(new Error(error.response.data.message));
     }
   };
@@ -82,6 +111,8 @@ export default class AutomationApiRepositoryImpl {
     selectorId: string
   ): Promise<SubscriptionDto | null> => {
     try {
+      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+
       const response = await axios.post(
         `${apiRoot}/automation/${automationId}/subscription`,
         {
@@ -92,7 +123,7 @@ export default class AutomationApiRepositoryImpl {
       const jsonResponse = response.data;
       if (response.status === 201) return jsonResponse;
       throw new Error(jsonResponse);
-    } catch (error) {
+    } catch (error: any) {
       return Promise.reject(new Error(error.response.data.message));
     }
   };
@@ -102,16 +133,18 @@ export default class AutomationApiRepositoryImpl {
     subscriptions: UpdateSubscriptionRequestObject[]
   ): Promise<SubscriptionDto[]> => {
     try {
+      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+
       const response = await axios.patch(
         `${apiRoot}/automation/${automationId}/subscriptions`,
         {
-          subscriptions
+          subscriptions,
         }
       );
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
-    } catch (error) {
+    } catch (error: any) {
       return Promise.reject(new Error(error.response.data.message));
     }
   };
@@ -121,6 +154,8 @@ export default class AutomationApiRepositoryImpl {
     params: URLSearchParams
   ): Promise<boolean> => {
     try {
+      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+
       const response = await axios.delete(
         `${apiRoot}/automation/${automationId}/subscription`,
         { params }
@@ -128,7 +163,7 @@ export default class AutomationApiRepositoryImpl {
       const jsonResponse = response.data;
       if (response.status === 200) return true;
       throw new Error(jsonResponse);
-    } catch (error) {
+    } catch (error: any) {
       return Promise.reject(new Error(error.response.data.message));
     }
   };

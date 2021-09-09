@@ -1,6 +1,8 @@
 {
   "root": true,
   "extends": [
+    "react-app",
+    "react-app/jest",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "airbnb",
@@ -13,6 +15,9 @@
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
-    "semi" : [2, "always"]
+    "semi": [2, "always"],
+    "@typescript-eslint/explicit-member-accessibility": ["error", {
+      "accessibility": "explicit", "overrides": {"properties": "off"}
+    }]
   }
 }

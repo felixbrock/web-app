@@ -421,7 +421,11 @@ export default (): ReactElement => {
       });
   };
 
+  useEffect(renderAutomations, []);
+
   useEffect(()=>{
+    if (!user) return;
+
     AutomationApiRepository.getAll()
     .then((automationDtos) => {
       setAutomations(automationDtos);
@@ -438,8 +442,6 @@ export default (): ReactElement => {
     });
 
   }, [user]);
-
-  useEffect(renderAutomations, []);
 
   useEffect(() => {
     Promise.all(

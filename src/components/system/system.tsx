@@ -29,9 +29,7 @@ export default (
 ): ReactElement => {
   const history = useHistory();
 
-  function handleDetailClick() {
-    history.push(`/system/${id}`);
-  }
+  const handleDetailClick = () => history.push(`/system/${id}`);
 
   const handleSubscribersClick = () => {
     setSystemId(id);
