@@ -139,7 +139,7 @@ const getSubscriptionInfo = async (
     );
 
     return subscriptionInfo;
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
@@ -167,7 +167,7 @@ const updateAlertAccessedOnValues = async (
       );
 
     return updatedSubscriptions;
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
@@ -224,7 +224,7 @@ const getOldestAlertsAccessedOnByUser = async (
       });
     });
     return accessedOnByUserElements;
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
@@ -426,7 +426,7 @@ export default (): ReactElement => {
   useEffect(()=>{
     if (!user) return;
 
-    AutomationApiRepository.getAll()
+    AutomationApiRepository.getBy(new URLSearchParams({}))
     .then((automationDtos) => {
       setAutomations(automationDtos);
       return getOldestAlertsAccessedOnByUser(
@@ -613,7 +613,7 @@ export default (): ReactElement => {
       const tableHeaders: string[] = tableContent.length ? ['Occurrence'] : [];
 
       setMissedAlertsElement(Table(tableHeaders, tableContent));
-    } catch (error) {
+    } catch (error: any) {
       setSystemError(typeof error === 'string' ? error : error.message);
       setShowErrorModal(true);
     }

@@ -122,7 +122,7 @@ const updateAlertAccessedOnValues = async (
     );
 
     return updatedSubscriptions;
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
@@ -177,7 +177,7 @@ const getOldestAlertsAccessedOnByUser = async (
       });
     });
     return accessedOnByUserValues;
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };

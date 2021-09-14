@@ -1,7 +1,6 @@
 import axios from 'axios';
-import { nodeEnv, serviceDiscoveryNamespace } from '../../config';
+import { nodeEnv } from '../../config';
 import SystemDto from './system-dto';
-import discoverIp from '../shared/service-discovery';
 
 // TODO - Implement Interface regarding clean architecture
 export default class SystemApiRepositoryImpl {
@@ -10,20 +9,16 @@ export default class SystemApiRepositoryImpl {
 
     if (nodeEnv !== 'production') return `http://localhost:3002/${path}`;
 
-    try {
-      const ip = await discoverIp(serviceDiscoveryNamespace, 'system-service');
-
-      return `http://${ip}/${path}`;
-    } catch (error: any) {
-      return Promise.reject(typeof error === 'string' ? error : error.message);
-    }
+    return `https://bff.hivedive.io/${path}`;
   };
 
-  public static getAll = async (): Promise<SystemDto[]> => {
+  public static getBy = async (
+    params: URLSearchParams
+  ): Promise<SystemDto[]> => {
     try {
       const apiRoot = await SystemApiRepositoryImpl.getRoot();
 
-      const response = await axios.get(`${apiRoot}/systems`);
+      const response = await axios.get(`${apiRoot}/systems`, { params });
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);

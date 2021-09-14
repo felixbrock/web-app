@@ -1,8 +1,7 @@
 import axios from 'axios';
-import { nodeEnv, serviceDiscoveryNamespace } from '../../config';
+import { nodeEnv } from '../../config';
 import AutomationDto from './automation-dto';
 import SubscriptionDto from './subscription-dto';
-import discoverIp from '../shared/service-discovery';
 
 export interface UpdateSubscriptionRequestObject {
   selectorId: string;
@@ -16,29 +15,7 @@ export default class AutomationApiRepositoryImpl {
 
     if (nodeEnv !== 'production') return `http://localhost:8080/${path}`;
 
-    try {
-      const ip = await discoverIp(
-        serviceDiscoveryNamespace,
-        'automation-service'
-      );
-
-      return `http://${ip}/${path}`;
-    } catch (error: any) {
-      return Promise.reject(typeof error === 'string' ? error : error.message);
-    }
-  };
-
-  public static getAll = async (): Promise<AutomationDto[]> => {
-    try {
-      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
-
-      const response = await axios.get(`${apiRoot}/automations`);
-      const jsonResponse = response.data;
-      if (response.status === 200) return jsonResponse;
-      throw new Error(jsonResponse);
-    } catch (error: any) {
-      return Promise.reject(new Error(error.response.data.message));
-    }
+    return `https://bff.hivedive.io/${path}`;
   };
 
   public static getOne = async (

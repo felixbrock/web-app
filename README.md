@@ -33,17 +33,3 @@ prettier: npm install --save-dev eslint-config-prettier
 
 (https://thesoreon.com/blog/how-to-set-up-eslint-with-typescript-in-vs-code)
 vs-code (Preferences: Open Settings (JSON)): "eslint.validate": ["typescript", "typescriptreact"]
-
-------------------------------
-
-Docker deployment
-
-aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 085009017826.dkr.ecr.eu-central-1.amazonaws.com
-
-$newVersion = 8; $previousVersion = $newVersion - 1; $name = '085009017826.dkr.ecr.eu-central-1.amazonaws.com/web-app'; docker build -t "${name}:v1.0.${newVersion}" .; docker push "${name}:v1.0.${newVersion}"; docker rmi "${name}:v1.0.${previousVersion}" aws ecr batch-delete-image --repository-name web-app --image-ids "imageTag=v1.0.${previousVersion}"
-
-<!-- docker run -dp 3006:80 085009017826.dkr.ecr.eu-central-1.amazonaws.com/web-app:v1.0.0 -->
-
-aws ecs update-service --cluster hivedive --service web-app --force-new-deployment
-
-------------------------------

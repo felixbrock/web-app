@@ -1,7 +1,6 @@
 import axios from 'axios';
-import { nodeEnv, serviceDiscoveryNamespace } from '../../config';
+import { nodeEnv } from '../../config';
 import SelectorDto from './selector-dto';
-import discoverIp from '../shared/service-discovery';
 
 // TODO - Implement Interface regarding clean architecture
 export default class SelectorApiRepositoryImpl {
@@ -10,16 +9,7 @@ export default class SelectorApiRepositoryImpl {
 
     if (nodeEnv !== 'production') return `http://localhost:3000/${path}`;
 
-    try {
-      const ip = await discoverIp(
-        serviceDiscoveryNamespace,
-        'selector-service'
-      );
-
-      return `http://${ip}/${path}`;
-    } catch (error: any) {
-      return Promise.reject(typeof error === 'string' ? error : error.message);
-    }
+    return `https://bff.hivedive.io/${path}`;
   };
 
   public static getOne = async (

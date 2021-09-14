@@ -92,7 +92,7 @@ const getDateData = async (
     });
 
     return dateRegistry;
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
@@ -118,7 +118,7 @@ const getHeatmapData = async (systemId: string): Promise<HeatmapData> => {
     const heatmapData = buildHeatmapData(startDate, endDate, dateRegistry);
 
     return heatmapData;
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
@@ -169,7 +169,7 @@ const getOldestAlertsAccessedOnByUser = async (
     });
 
     return accessedOnByUserValues;
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
@@ -314,7 +314,7 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!user) return;  
 
-    SystemApiRepository.getAll()
+    SystemApiRepository.getBy(new URLSearchParams({}))
       .then((systemDtos) => {
         setSystems(systemDtos);
         return getOldestAlertsAccessedOnByUser(

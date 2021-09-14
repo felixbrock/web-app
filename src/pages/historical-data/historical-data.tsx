@@ -46,7 +46,7 @@ const getDateSelectors = async (
     return await SelectorApiRepository.getBy(
       new URLSearchParams({ alertCreatedOnStart, alertCreatedOnEnd })
     );
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
@@ -119,7 +119,7 @@ const getHistoricalData = async (date: Date): Promise<string[][]> => {
     );
 
     return datasets.flatMap((selectorset) => selectorset);
-  } catch (error) {
+  } catch (error: any) {
     return Promise.reject(new Error(error.message));
   }
 };
