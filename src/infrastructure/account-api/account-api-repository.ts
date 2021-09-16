@@ -5,7 +5,7 @@ import AccountDto from './account-dto';
 // TODO - Implement Interface regarding clean architecture
 export default class AccountApiRepositoryImpl {
   private static getRoot = async (): Promise<string> => {
-    const path = 'api/v1';
+    const path = 'account-service/api/v1';
 
     if (nodeEnv !== 'production') return `http://localhost:8081/${path}`;
 
