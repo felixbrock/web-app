@@ -9,7 +9,7 @@ export default class SelectorApiRepositoryImpl {
 
     if (nodeEnv !== 'production') return `http://localhost:3000/${path}`;
 
-    return `https://bff.hivedive.io/${path}`;
+    return `https://bff.hivedive.io/selector-service/${path}`;
   };
 
   public static getOne = async (

@@ -23,6 +23,7 @@ import {
   FooterContainer,
   App,
 } from './App-Items';
+import { nodeEnv } from './config';
 
 export default (): ReactElement => {
   Amplify.configure({
@@ -41,8 +42,8 @@ export default (): ReactElement => {
     oauth: {
       domain: 'auth.hivedive.io',
       scope: ['email', 'openid'],
-      redirectSignIn: process.env.NODE_ENV === 'development' ? 'http://localhost:3006' : 'https://app.hivedive.io',
-      redirectSignOut: process.env.NODE_ENV === 'development' ? 'http://localhost:3006' :'https://app.hivedive.io',
+      redirectSignIn: nodeEnv !== 'production' ? 'http://localhost:3006' : 'https://app.hivedive.io',
+      redirectSignOut: nodeEnv !== 'production' ? 'http://localhost:3006' :'https://app.hivedive.io',
       responseType: 'token',
     },
   });

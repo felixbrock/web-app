@@ -15,7 +15,7 @@ export default class AutomationApiRepositoryImpl {
 
     if (nodeEnv !== 'production') return `http://localhost:8080/${path}`;
 
-    return `https://bff.hivedive.io/${path}`;
+    return `https://bff.hivedive.io/automation-service/${path}`;
   };
 
   public static getOne = async (

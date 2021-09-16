@@ -9,7 +9,7 @@ export default class SystemApiRepositoryImpl {
 
     if (nodeEnv !== 'production') return `http://localhost:3002/${path}`;
 
-    return `https://bff.hivedive.io/${path}`;
+    return `https://bff.hivedive.io/system-service/${path}`;
   };
 
   public static getBy = async (
