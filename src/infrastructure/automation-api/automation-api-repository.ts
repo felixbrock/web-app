@@ -11,7 +11,7 @@ export interface UpdateSubscriptionRequestObject {
 // TODO - Implement Interface regarding clean architecture
 export default class AutomationApiRepositoryImpl {
   private static getRoot = async (): Promise<string> => {
-    const path = 'automation-service/api/v1';
+    const path = 'api/v1';
 
     if (nodeEnv !== 'production') return `http://localhost:8080/${path}`;
 

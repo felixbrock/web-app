@@ -5,7 +5,7 @@ import SelectorDto from './selector-dto';
 // TODO - Implement Interface regarding clean architecture
 export default class SelectorApiRepositoryImpl {
   private static getRoot = async (): Promise<string> => {
-    const path = 'selector-service/api/v1';
+    const path = 'api/v1';
 
     if (nodeEnv !== 'production') return `http://localhost:3000/${path}`;
 
