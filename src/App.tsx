@@ -41,8 +41,8 @@ export default (): ReactElement => {
     oauth: {
       domain: 'auth.hivedive.io',
       scope: ['email', 'openid'],
-      redirectSignIn: 'https://app.hivedive.io',
-      redirectSignOut: 'https://app.hivedive.io',
+      redirectSignIn: process.env.NODE_ENV === 'development' ? 'http://localhost:3006' : 'https://app.hivedive.io',
+      redirectSignOut: process.env.NODE_ENV === 'development' ? 'http://localhost:3006' :'https://app.hivedive.io',
       responseType: 'token',
     },
   });
