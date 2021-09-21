@@ -16,7 +16,6 @@ import SelectorDto from '../../infrastructure/selector-api/selector-dto';
 import SelectorApiRepository from '../../infrastructure/selector-api/selector-api-repository';
 import AccountApiRepository from '../../infrastructure/account-api/account-api-repository';
 import AutomationApiRepository from '../../infrastructure/automation-api/automation-api-repository';
-import AccountDto from '../../infrastructure/account-api/account-dto';
 import AutomationDto from '../../infrastructure/automation-api/automation-dto';
 import Table from '../../components/table/table';
 import {
@@ -80,19 +79,12 @@ const getHeatmapData = (selector: SelectorDto | undefined): HeatmapData => {
 };
 
 const updateAlertAccessedOnValues = async (
-  userId: string,
+  accountId: string,
   selectorId: string
 ): Promise<SubscriptionDto[]> => {
   try {
-    const accounts: AccountDto[] = await AccountApiRepository.getBy(
-      new URLSearchParams({ userId })
-    );
-
-    if (!accounts.length)
-      throw new Error(`No accounts found for user ${userId}`);
-
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId: accounts[0].id })
+      new URLSearchParams({ accountId })
     );
 
     const updatedSubscriptions: SubscriptionDto[] = [];
@@ -128,21 +120,14 @@ const updateAlertAccessedOnValues = async (
 };
 
 const getOldestAlertsAccessedOnByUser = async (
-  userId: string,
+  accountId: string,
   selectorIds: string[]
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
   const accessedOnByUserValues: OldestAlertsAccessedOnByUser[] = [];
 
   try {
-    const accounts: AccountDto[] = await AccountApiRepository.getBy(
-      new URLSearchParams({ userId })
-    );
-
-    if (!accounts.length)
-      throw new Error(`No accounts found for user ${userId}`);
-
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId: accounts[0].id })
+      new URLSearchParams({ accountId })
     );
 
     automations.forEach((automation) => {
@@ -327,7 +312,12 @@ export default (props: any): ReactElement => {
 
   const [user, setUser] = useState<any>();
 
+  const [accountId, setAccountId] = useState('');
+
   const renderSelectors = () => {
+    setUser(undefined);
+    setAccountId('');
+
     Auth.currentAuthenticatedUser()
       .then((cognitoUser) => setUser(cognitoUser))
       .catch((error) => {
@@ -343,11 +333,29 @@ export default (props: any): ReactElement => {
   useEffect(() => {
     if (!user) return;
 
+    AccountApiRepository.getBy(new URLSearchParams({ userId: user.username }))
+      .then((accounts) => {
+        if (!accounts.length) throw new Error(`No accounts found for user`);
+
+        if (accounts.length > 1)
+          throw new Error(`Multiple accounts found for user`);
+
+        setAccountId(accounts[0].id);
+      })
+      .catch((error) => {
+        setSystemError(typeof error === 'string' ? error : error.message);
+        setShowErrorModal(true);
+      });
+  }, [user]);
+
+  useEffect(() => {
+    if (!accountId) return;
+
     SelectorApiRepository.getBy(new URLSearchParams({ systemId }))
       .then((selectorDtos) => {
         setSelectors(selectorDtos);
         return getOldestAlertsAccessedOnByUser(
-          user.username,
+          accountId,
           selectorDtos.map((selectorDto) => selectorDto.id)
         );
       })
@@ -360,7 +368,7 @@ export default (props: any): ReactElement => {
         setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
-  }, [user]);
+  }, [accountId]);
 
   useEffect(() => {
     if (!initialRenderFinished.current) return;
@@ -392,10 +400,7 @@ export default (props: any): ReactElement => {
     if (!initialRenderFinished.current) return;
     if (!showAlertsModal) {
       setMissedAlertsElement(undefined);
-      updateAlertAccessedOnValues(
-        user.username,
-        selectorId
-      )
+      updateAlertAccessedOnValues(accountId, selectorId)
         .then(() => renderSelectors())
         .catch((error) => {
           setSystemError(typeof error === 'string' ? error : error.message);

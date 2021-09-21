@@ -26,25 +26,47 @@ import {
 import { nodeEnv } from './config';
 
 export default (): ReactElement => {
+  const authEnvConfig = {
+    userPoolId:
+      nodeEnv !== 'production'
+        ? 'eu-central-1_dEht1JWXi'
+        : 'eu-central-1_dajdkLW0m',
+    userPoolWebClientId:
+      nodeEnv !== 'production'
+        ? '30b5stvm9ueo53hu8jt2kfs0td'
+        : '4lbatrkhi1q20f6us7ti8rqtfb',
+  };
+  const oAuthEnvConfig = {
+    domain:
+      nodeEnv !== 'production'
+        ? 'hivedive.auth.eu-central-1.amazoncognito.com'
+        : 'auth.hivedive.io',
+    redirectSignIn:
+      nodeEnv !== 'production'
+        ? 'http://localhost:3006'
+        : 'https://app.hivedive.io',
+    redirectSignOut:
+      nodeEnv !== 'production'
+        ? 'http://localhost:3006'
+        : 'https://app.hivedive.io',
+  };
+
   Amplify.configure({
     Auth: {
       region: 'eu-central-1',
-      userPoolId: 'eu-central-1_dajdkLW0m',
       mandatorySignIn: true,
-      userPoolWebClientId: '4lbatrkhi1q20f6us7ti8rqtfb',
       // cookieStorage: {
       //   domain: 'app.hivedive.io',
       //   path: '/',
       //   expires: 365,
       //   secure: true,
       // },
+      ...authEnvConfig,
     },
     oauth: {
-      domain: 'auth.hivedive.io',
       scope: ['email', 'openid'],
-      redirectSignIn: nodeEnv !== 'production' ? 'http://localhost:3006' : 'https://app.hivedive.io',
-      redirectSignOut: nodeEnv !== 'production' ? 'http://localhost:3006' :'https://app.hivedive.io',
       responseType: 'token',
+      ...oAuthEnvConfig
     },
   });
 

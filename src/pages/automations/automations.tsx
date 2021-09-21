@@ -17,7 +17,6 @@ import SystemApiRepository from '../../infrastructure/system-api/system-api-repo
 import AutomationApiRepository, {
   UpdateSubscriptionRequestObject,
 } from '../../infrastructure/automation-api/automation-api-repository';
-import AccountDto from '../../infrastructure/account-api/account-dto';
 import AccountApiRepository from '../../infrastructure/account-api/account-api-repository';
 import AutomationDto from '../../infrastructure/automation-api/automation-dto';
 import SelectorApiRepository from '../../infrastructure/selector-api/selector-api-repository';
@@ -173,20 +172,13 @@ const updateAlertAccessedOnValues = async (
 };
 
 const getOldestAlertsAccessedOnByUser = async (
-  userId: string
+  accountId: string
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
   const accessedOnByUserElements: OldestAlertsAccessedOnByUser[] = [];
 
   try {
-    const accounts: AccountDto[] = await AccountApiRepository.getBy(
-      new URLSearchParams({ userId })
-    );
-
-    if (!accounts.length)
-      throw new Error(`No accounts found for user ${userId}`);
-
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId: accounts[0].id })
+      new URLSearchParams({ accountId })
     );
 
     automations.forEach((automation) => {
@@ -205,15 +197,13 @@ const getOldestAlertsAccessedOnByUser = async (
           subscription.alertsAccessedOnByUser <
           selectorAccessedOnByUser.alertsAccessedOnByUser
         ) {
-
           const index = accessedOnByUserElements.findIndex(
             (element) => element.selectorId === subscription.selectorId
           );
 
-            const {automationIds} = selectorAccessedOnByUser;
-            if(!automationIds.includes(
-              automation.id
-            )) automationIds.push(automation.id);
+          const { automationIds } = selectorAccessedOnByUser;
+          if (!automationIds.includes(automation.id))
+            automationIds.push(automation.id);
 
           accessedOnByUserElements[index] = {
             automationIds,
@@ -255,8 +245,8 @@ const buildRows = (
 
   automations.forEach((automation) => {
     const automationAccessedOnElements: OldestAlertsAccessedOnByUser[] =
-      alertsAccessedOnByUserElements.filter(
-        (element) => element.automationIds.includes(automation.id)
+      alertsAccessedOnByUserElements.filter((element) =>
+        element.automationIds.includes(automation.id)
       );
 
     const missedAlerts: AlertDto[] = automationAccessedOnElements.flatMap(
@@ -344,13 +334,7 @@ export default (): ReactElement => {
   const [registrationSubmit, setRegistrationSubmit] = useState(false);
 
   const handleRegistrationSubmit = (state: boolean): void => {
-    if (
-      !automationName ||
-      isWhitespaceString(automationName) ||
-      !accountId ||
-      isWhitespaceString(accountId)
-    )
-      return;
+    if (!automationName || isWhitespaceString(automationName)) return;
     setRegistrationSubmit(state);
     setShowRegistrationModal(!showRegistrationModal);
   };
@@ -411,6 +395,9 @@ export default (): ReactElement => {
   const [user, setUser] = useState<any>();
 
   const renderAutomations = () => {
+    setUser(undefined);
+    setAccountId('');
+
     Auth.currentAuthenticatedUser()
       .then((cognitoUser) => setUser(cognitoUser))
       .catch((error) => {
@@ -423,25 +410,40 @@ export default (): ReactElement => {
 
   useEffect(renderAutomations, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (!user) return;
 
-    AutomationApiRepository.getBy(new URLSearchParams({}))
-    .then((automationDtos) => {
-      setAutomations(automationDtos);
-      return getOldestAlertsAccessedOnByUser(
-        user.username
-      );
-    })
-    .then((accessedOnByUserElements) => {
-      setAlertsAccessedOnByUser(accessedOnByUserElements);
-    })
-    .catch((error) => {
-      setSystemError(typeof error === 'string' ? error : error.message);
-      setShowErrorModal(true);
-    });
+    AccountApiRepository.getBy(new URLSearchParams({ userId: user.username }))
+      .then((accounts) => {
+        if (!accounts.length) throw new Error(`No accounts found for user`);
 
+        if (accounts.length > 1)
+          throw new Error(`Multiple accounts found for user`);
+
+        setAccountId(accounts[0].id);
+      })
+      .catch((error) => {
+        setSystemError(typeof error === 'string' ? error : error.message);
+        setShowErrorModal(true);
+      });
   }, [user]);
+
+  useEffect(() => {
+    if (!accountId) return;
+
+    AutomationApiRepository.getBy(new URLSearchParams({}))
+      .then((automationDtos) => {
+        setAutomations(automationDtos);
+        return getOldestAlertsAccessedOnByUser(accountId);
+      })
+      .then((accessedOnByUserElements) =>
+        setAlertsAccessedOnByUser(accessedOnByUserElements)
+      )
+      .catch((error) => {
+        setSystemError(typeof error === 'string' ? error : error.message);
+        setShowErrorModal(true);
+      });
+  }, [accountId]);
 
   useEffect(() => {
     Promise.all(
@@ -647,7 +649,6 @@ export default (): ReactElement => {
 
   useEffect(() => {
     if (!showRegistrationModal && initialRenderFinished.current) {
-      setAccountId('');
       setAutomationName('');
     }
   }, [showRegistrationModal]);
@@ -717,13 +718,6 @@ export default (): ReactElement => {
                 type="text"
                 placeholder="Enter automation name..."
                 onChange={(event) => setAutomationName(event.target.value)}
-                required
-              />
-              <FieldLabel>Account Id (Automation Owner)</FieldLabel>
-              <Input
-                type="text"
-                placeholder="Enter account id of owner..."
-                onChange={(event) => setAccountId(event.target.value)}
                 required
               />
             </form>,

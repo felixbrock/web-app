@@ -16,7 +16,6 @@ import Table from '../../components/table/table';
 import SystemDto from '../../infrastructure/system-api/system-dto';
 import SystemApiRepository from '../../infrastructure/system-api/system-api-repository';
 import AutomationApiRepository from '../../infrastructure/automation-api/automation-api-repository';
-import AccountDto from '../../infrastructure/account-api/account-dto';
 import AccountApiRepository from '../../infrastructure/account-api/account-api-repository';
 import AutomationDto from '../../infrastructure/automation-api/automation-dto';
 import SelectorApiRepository from '../../infrastructure/selector-api/selector-api-repository';
@@ -124,20 +123,13 @@ const getHeatmapData = async (systemId: string): Promise<HeatmapData> => {
 };
 
 const getOldestAlertsAccessedOnByUser = async (
-  userId: string
+  accountId: string
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
   const accessedOnByUserValues: OldestAlertsAccessedOnByUser[] = [];
 
   try {
-    const accounts: AccountDto[] = await AccountApiRepository.getBy(
-      new URLSearchParams({ userId })
-    );
-
-    if (!accounts.length)
-      throw new Error(`No accounts found for user ${userId}`);
-
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId: accounts[0].id })
+      new URLSearchParams({ accountId })
     );
 
     automations.forEach((automation) => {
@@ -298,7 +290,12 @@ export default (): ReactElement => {
 
   const [user, setUser] = useState<any>();
 
+  const [accountId, setAccountId] = useState('');
+
   const renderSystems = () => {
+    setUser(undefined);
+    setAccountId('');
+
     Auth.currentAuthenticatedUser()
       .then((cognitoUser) => setUser(cognitoUser))
       .catch((error) => {
@@ -312,14 +309,30 @@ export default (): ReactElement => {
   useEffect(renderSystems, []);
 
   useEffect(() => {
-    if (!user) return;  
+    if (!user) return;
+
+    AccountApiRepository.getBy(new URLSearchParams({ userId: user.username }))
+      .then((accounts) => {
+        if (!accounts.length) throw new Error(`No accounts found for user`);
+
+        if (accounts.length > 1)
+          throw new Error(`Multiple accounts found for user`);
+
+        setAccountId(accounts[0].id);
+      })
+      .catch((error) => {
+        setSystemError(typeof error === 'string' ? error : error.message);
+        setShowErrorModal(true);
+      });
+  }, [user]);
+
+  useEffect(() => {
+    if(!accountId) return;
 
     SystemApiRepository.getBy(new URLSearchParams({}))
       .then((systemDtos) => {
         setSystems(systemDtos);
-        return getOldestAlertsAccessedOnByUser(
-          user.username
-        );
+        return getOldestAlertsAccessedOnByUser(accountId);
       })
       .then((accessedOnByUserValues) => {
         setAlertsAccessedOnByUser(accessedOnByUserValues);
@@ -330,7 +343,7 @@ export default (): ReactElement => {
         setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
-  }, [user]);
+  }, [accountId]);
 
   useEffect(() => {
     if (!initialRenderFinished.current) return;
