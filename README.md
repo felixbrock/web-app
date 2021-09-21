@@ -32,4 +32,4 @@ prettier: npm install --save-dev --save-exact prettier
 prettier: npm install --save-dev eslint-config-prettier
 
 (https://thesoreon.com/blog/how-to-set-up-eslint-with-typescript-in-vs-code)
-vs-code (Preferences: Open Settings (JSON)): "eslint.validate": ["typescript", "typescriptreact"]
+vs-code (Preferences: Open Settings (JSON)): "eslint.validate": ["typescript", "typescriptreact"] 
