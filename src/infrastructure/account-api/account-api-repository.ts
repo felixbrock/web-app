@@ -7,9 +7,22 @@ export default class AccountApiRepositoryImpl {
   private static getRoot = async (): Promise<string> => {
     const path = 'api/v1';
 
-    if (nodeEnv !== 'production') return `http://localhost:8081/${path}`;
+    let root = '';
+    switch (nodeEnv) {
+      case 'development':
+        root = `http://localhost:8081/${path}`;
+        break;
+      case 'test':
+        root = `https://bff-test.hivedive.io/account-service/${path}`;
+        break;
+      case 'production':
+        root = `https://bff.hivedive.io/account-service/${path}`;
+        break;
+      default:
+        break;
+    }
 
-    return `https://bff.hivedive.io/account-service/${path}`;
+    return root;
   };
 
   public static getBy = async (
@@ -21,7 +34,7 @@ export default class AccountApiRepositoryImpl {
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        params
+        params,
       };
 
       const response = await axios.get(`${apiRoot}/accounts`, config);

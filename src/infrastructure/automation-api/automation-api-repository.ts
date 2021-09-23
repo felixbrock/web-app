@@ -13,9 +13,22 @@ export default class AutomationApiRepositoryImpl {
   private static getRoot = async (): Promise<string> => {
     const path = 'api/v1';
 
-    if (nodeEnv !== 'production') return `http://localhost:8080/${path}`;
+    let root = '';
+    switch (nodeEnv) {
+      case 'development':
+        root = `http://localhost:8080/${path}`;
+        break;
+      case 'test':
+        root = `https://bff-test.hivedive.io/automation-service/${path}`;
+        break;
+      case 'production':
+        root = `https://bff.hivedive.io/automation-service/${path}`;
+        break;
+      default:
+        break;
+    }
 
-    return `https://bff.hivedive.io/automation-service/${path}`;
+    return root;
   };
 
   public static getOne = async (

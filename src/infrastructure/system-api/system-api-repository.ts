@@ -7,9 +7,22 @@ export default class SystemApiRepositoryImpl {
   private static getRoot = async (): Promise<string> => {
     const path = 'api/v1';
 
-    if (nodeEnv !== 'production') return `http://localhost:3002/${path}`;
+    let root = '';
+    switch (nodeEnv) {
+      case 'development':
+        root = `http://localhost:3002/${path}`;
+        break;
+      case 'test':
+        root = `https://bff-test.hivedive.io/system-service/${path}`;
+        break;
+      case 'production':
+        root = `https://bff.hivedive.io/system-service/${path}`;
+        break;
+      default:
+        break;
+    }
 
-    return `https://bff.hivedive.io/system-service/${path}`;
+    return root;
   };
 
   public static getBy = async (

@@ -7,9 +7,22 @@ export default class SelectorApiRepositoryImpl {
   private static getRoot = async (): Promise<string> => {
     const path = 'api/v1';
 
-    if (nodeEnv !== 'production') return `http://localhost:3000/${path}`;
+    let root = '';
+    switch (nodeEnv) {
+      case 'development':
+        root = `http://localhost:3000/${path}`;
+        break;
+      case 'test':
+        root = `https://bff-test.hivedive.io/selector-service/${path}`;
+        break;
+      case 'production':
+        root = `https://bff.hivedive.io/selector-service/${path}`;
+        break;
+      default:
+        break;
+    }
 
-    return `https://bff.hivedive.io/selector-service/${path}`;
+    return root;
   };
 
   public static getOne = async (
