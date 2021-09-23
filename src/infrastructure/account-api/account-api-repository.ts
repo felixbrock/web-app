@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { nodeEnv } from '../../config';
 import AccountDto from './account-dto';
 
@@ -13,12 +13,18 @@ export default class AccountApiRepositoryImpl {
   };
 
   public static getBy = async (
-    params: URLSearchParams
+    params: URLSearchParams,
+    jwt: string
   ): Promise<AccountDto[]> => {
     try {
       const apiRoot = await AccountApiRepositoryImpl.getRoot();
 
-      const response = await axios.get(`${apiRoot}/accounts`, { params });
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+        params
+      };
+
+      const response = await axios.get(`${apiRoot}/accounts`, config);
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);

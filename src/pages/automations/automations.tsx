@@ -104,7 +104,8 @@ const buildSubscribeButton = (
 const getSubscriptionInfo = async (
   subscriptions: SubscriptionDto[],
   automationId: string,
-  setSubscriptionState: (selectorId: string, state: boolean) => void
+  setSubscriptionState: (selectorId: string, state: boolean) => void,
+  jwt: string
 ): Promise<any[][]> => {
   const subscriptionInfo: any[][] = [];
 
@@ -112,9 +113,9 @@ const getSubscriptionInfo = async (
     await Promise.all(
       subscriptions.map(async (subscription) => {
         const selector = await SelectorApiRepository.getOne(
-          subscription.selectorId
+          subscription.selectorId, jwt
         );
-        const system = await SystemApiRepository.getOne(subscription.systemId);
+        const system = await SystemApiRepository.getOne(subscription.systemId, jwt);
 
         if (!selector)
           throw new Error(
@@ -145,7 +146,8 @@ const getSubscriptionInfo = async (
 
 const updateAlertAccessedOnValues = async (
   automationId: string,
-  subscriptions: SubscriptionDto[]
+  subscriptions: SubscriptionDto[],
+  jwt:string
 ): Promise<SubscriptionDto[]> => {
   try {
     const updatedSubscriptionObjects: UpdateSubscriptionRequestObject[] =
@@ -157,7 +159,7 @@ const updateAlertAccessedOnValues = async (
     const updatedSubscriptions =
       await AutomationApiRepository.updateSubscriptions(
         automationId,
-        updatedSubscriptionObjects
+        updatedSubscriptionObjects, jwt
       );
 
     if (updatedSubscriptionObjects.length && !updatedSubscriptions.length)
@@ -172,13 +174,14 @@ const updateAlertAccessedOnValues = async (
 };
 
 const getOldestAlertsAccessedOnByUser = async (
-  accountId: string
+  accountId: string,
+  jwt:string
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
   const accessedOnByUserElements: OldestAlertsAccessedOnByUser[] = [];
 
   try {
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId })
+      new URLSearchParams({ accountId }), jwt
     );
 
     automations.forEach((automation) => {
@@ -394,8 +397,11 @@ export default (): ReactElement => {
 
   const [user, setUser] = useState<any>();
 
+  const [jwt, setJwt] = useState('');
+
   const renderAutomations = () => {
     setUser(undefined);
+    setJwt('');
     setAccountId('');
 
     Auth.currentAuthenticatedUser()
@@ -413,7 +419,18 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!user) return;
 
-    AccountApiRepository.getBy(new URLSearchParams({ userId: user.username }))
+    Auth.currentSession()
+      .then((session) => {
+        const accessToken = session.getAccessToken();
+
+        const token = accessToken.getJwtToken();
+        setJwt(token);
+
+        return AccountApiRepository.getBy(
+          new URLSearchParams({ userId: user.username }),
+          token
+        );
+      })
       .then((accounts) => {
         if (!accounts.length) throw new Error(`No accounts found for user`);
 
@@ -431,10 +448,15 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!accountId) return;
 
-    AutomationApiRepository.getBy(new URLSearchParams({}))
+    if (!jwt) {
+      setSystemError('No user authorization found');
+      setShowErrorModal(true);
+    }
+
+    AutomationApiRepository.getBy(new URLSearchParams({}), jwt)
       .then((automationDtos) => {
         setAutomations(automationDtos);
-        return getOldestAlertsAccessedOnByUser(accountId);
+        return getOldestAlertsAccessedOnByUser(accountId, jwt);
       })
       .then((accessedOnByUserElements) =>
         setAlertsAccessedOnByUser(accessedOnByUserElements)
@@ -452,7 +474,7 @@ export default (): ReactElement => {
         selectors: await Promise.all(
           automation.subscriptions.map(async (subscription) => {
             const selector = await SelectorApiRepository.getOne(
-              subscription.selectorId
+              subscription.selectorId, jwt
             );
 
             if (!selector)
@@ -489,7 +511,8 @@ export default (): ReactElement => {
     getSubscriptionInfo(
       automation.subscriptions,
       automationId,
-      handleIsSubscribedValue
+      handleIsSubscribedValue, 
+      jwt
     )
       .then((subscriptionElements) => {
         const headers: string[] = subscriptionElements.length
@@ -518,7 +541,7 @@ export default (): ReactElement => {
 
         const deleteSuccess = await AutomationApiRepository.deleteSubscription(
           automationId,
-          new URLSearchParams({ selectorId: key })
+          new URLSearchParams({ selectorId: key }), jwt
         );
 
         if (!deleteSuccess)
@@ -562,7 +585,7 @@ export default (): ReactElement => {
     if (!showAlertsModal) {
       setMissedAlertsElement(undefined);
 
-      updateAlertAccessedOnValues(automationId, automation.subscriptions)
+      updateAlertAccessedOnValues(automationId, automation.subscriptions, jwt)
         .then(() => renderAutomations())
         .catch((error) => {
           setSystemError(typeof error === 'string' ? error : error.message);
@@ -624,7 +647,7 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!registrationSubmit || !initialRenderFinished.current) return;
 
-    AutomationApiRepository.post(automationName, accountId)
+    AutomationApiRepository.post(automationName, accountId, jwt)
       .then((automation) => {
         if (!automation)
           throw new Error(`Creation of automation ${automationName} failed`);
@@ -656,7 +679,7 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!toDelete || !initialRenderFinished.current) return;
 
-    AutomationApiRepository.delete(automationId)
+    AutomationApiRepository.delete(automationId, jwt)
       .then((deleted) => {
         if (!deleted)
           throw new Error(`Deletion of automation ${automationId} failed`);

@@ -37,14 +37,16 @@ export const buildQueryTimestamp = (date: Date): string => {
 
 const getDateSelectors = async (
   startDate: Date,
-  endDate: Date
+  endDate: Date,
+  jwt: string
 ): Promise<SelectorDto[]> => {
   const alertCreatedOnStart = buildQueryTimestamp(startDate);
   const alertCreatedOnEnd = buildQueryTimestamp(endDate);
 
   try {
     return await SelectorApiRepository.getBy(
-      new URLSearchParams({ alertCreatedOnStart, alertCreatedOnEnd })
+      new URLSearchParams({ alertCreatedOnStart, alertCreatedOnEnd }),
+      jwt
     );
   } catch (error: any) {
     return Promise.reject(new Error(error.message));
@@ -64,7 +66,10 @@ const getDateSelectors = async (
 //   automationId: string;
 // }
 
-const getHistoricalData = async (date: Date): Promise<string[][]> => {
+const getHistoricalData = async (
+  date: Date,
+  jwt: string
+): Promise<string[][]> => {
   const startDate = new Date(date);
 
   startDate.setUTCHours(0);
@@ -79,11 +84,11 @@ const getHistoricalData = async (date: Date): Promise<string[][]> => {
   endDate.setUTCMilliseconds(999);
 
   try {
-    const selectors = await getDateSelectors(startDate, endDate);
+    const selectors = await getDateSelectors(startDate, endDate, jwt);
 
     const datasets = await Promise.all(
       selectors.map(async (selector) => {
-        const system = await SystemApiRepository.getOne(selector.systemId);
+        const system = await SystemApiRepository.getOne(selector.systemId, jwt);
 
         if (!system)
           throw new Error(
@@ -142,8 +147,10 @@ export default (): ReactElement => {
   const [systemError, setSystemError] = useState('');
 
   const [user, setUser] = useState();
-
+  
   const renderHistoricalData = () => {
+    setUser(undefined);
+
     Auth.currentAuthenticatedUser()
       .then((cognitoUser) => setUser(cognitoUser))
       .catch((error) => {
@@ -154,8 +161,17 @@ export default (): ReactElement => {
       });
   };
 
-  useEffect( () => {
-    getHistoricalData(new Date(date))
+  useEffect(() => {
+    if(!user) return;
+
+    Auth.currentSession()
+      .then((session) => {
+        const accessToken = session.getAccessToken();
+
+        const jwt = accessToken.getJwtToken();
+
+        return getHistoricalData(new Date(date), jwt);
+      })
       .then((datasets) => {
         setDataAvailable(!!datasets.length);
         const headers = datasets.length

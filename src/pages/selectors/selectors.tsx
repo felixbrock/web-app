@@ -80,11 +80,13 @@ const getHeatmapData = (selector: SelectorDto | undefined): HeatmapData => {
 
 const updateAlertAccessedOnValues = async (
   accountId: string,
-  selectorId: string
+  selectorId: string,
+  jwt: string
 ): Promise<SubscriptionDto[]> => {
   try {
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId })
+      new URLSearchParams({ accountId }),
+      jwt
     );
 
     const updatedSubscriptions: SubscriptionDto[] = [];
@@ -98,9 +100,11 @@ const updateAlertAccessedOnValues = async (
         if (!subscription) return;
 
         const updatedEntities =
-          await AutomationApiRepository.updateSubscriptions(automation.id, [
-            { selectorId, alertsAccessedOnByUser: Date.now() },
-          ]);
+          await AutomationApiRepository.updateSubscriptions(
+            automation.id,
+            [{ selectorId, alertsAccessedOnByUser: Date.now() }],
+            jwt
+          );
 
         updatedEntities.forEach((element) =>
           updatedSubscriptions.push(element)
@@ -121,13 +125,15 @@ const updateAlertAccessedOnValues = async (
 
 const getOldestAlertsAccessedOnByUser = async (
   accountId: string,
-  selectorIds: string[]
+  selectorIds: string[],
+  jwt: string
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
   const accessedOnByUserValues: OldestAlertsAccessedOnByUser[] = [];
 
   try {
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId })
+      new URLSearchParams({ accountId }),
+      jwt
     );
 
     automations.forEach((automation) => {
@@ -314,8 +320,11 @@ export default (props: any): ReactElement => {
 
   const [accountId, setAccountId] = useState('');
 
+  const [jwt, setJwt] = useState('');
+
   const renderSelectors = () => {
     setUser(undefined);
+    setJwt('');
     setAccountId('');
 
     Auth.currentAuthenticatedUser()
@@ -333,7 +342,18 @@ export default (props: any): ReactElement => {
   useEffect(() => {
     if (!user) return;
 
-    AccountApiRepository.getBy(new URLSearchParams({ userId: user.username }))
+    Auth.currentSession()
+      .then((session) => {
+        const accessToken = session.getAccessToken();
+
+        const token = accessToken.getJwtToken();
+        setJwt(token);
+
+        return AccountApiRepository.getBy(
+          new URLSearchParams({ userId: user.username }),
+          token
+        );
+      })
       .then((accounts) => {
         if (!accounts.length) throw new Error(`No accounts found for user`);
 
@@ -351,12 +371,18 @@ export default (props: any): ReactElement => {
   useEffect(() => {
     if (!accountId) return;
 
-    SelectorApiRepository.getBy(new URLSearchParams({ systemId }))
+    if (!jwt) {
+      setSystemError('No user authorization found');
+      setShowErrorModal(true);
+    }
+
+    SelectorApiRepository.getBy(new URLSearchParams({ systemId }), jwt)
       .then((selectorDtos) => {
         setSelectors(selectorDtos);
         return getOldestAlertsAccessedOnByUser(
           accountId,
-          selectorDtos.map((selectorDto) => selectorDto.id)
+          selectorDtos.map((selectorDto) => selectorDto.id),
+          jwt
         );
       })
       .then((accessedOnByUserValues) => {
@@ -378,7 +404,8 @@ export default (props: any): ReactElement => {
     }
 
     AutomationApiRepository.getBy(
-      new URLSearchParams({ subscriptionSelectorId: selectorId })
+      new URLSearchParams({ subscriptionSelectorId: selectorId }),
+      jwt
     )
       .then((automationElements) => {
         const tableContent: string[][] = automationElements.map(
@@ -400,7 +427,7 @@ export default (props: any): ReactElement => {
     if (!initialRenderFinished.current) return;
     if (!showAlertsModal) {
       setMissedAlertsElement(undefined);
-      updateAlertAccessedOnValues(accountId, selectorId)
+      updateAlertAccessedOnValues(accountId, selectorId, jwt)
         .then(() => renderSelectors())
         .catch((error) => {
           setSystemError(typeof error === 'string' ? error : error.message);
@@ -446,7 +473,7 @@ export default (props: any): ReactElement => {
   useEffect(() => {
     if (!registrationSubmit || !initialRenderFinished.current) return;
 
-    SelectorApiRepository.post(content, systemId)
+    SelectorApiRepository.post(content, systemId, jwt)
       .then((selector) => {
         if (!selector)
           throw new Error(`Creation of selector ${content} failed`);
@@ -473,7 +500,12 @@ export default (props: any): ReactElement => {
   useEffect(() => {
     if (!automationSubscribe || !initialRenderFinished.current) return;
 
-    AutomationApiRepository.postSubscription(automationId, systemId, selectorId)
+    AutomationApiRepository.postSubscription(
+      automationId,
+      systemId,
+      selectorId,
+      jwt
+    )
       .then((subscription) => {
         if (!subscription)
           throw new Error(
@@ -508,7 +540,7 @@ export default (props: any): ReactElement => {
   useEffect(() => {
     if (!toDelete || !initialRenderFinished.current) return;
 
-    SelectorApiRepository.delete(selectorId)
+    SelectorApiRepository.delete(selectorId, jwt)
       .then((deleted) => {
         if (!deleted)
           throw new Error(`Deletion of selector ${selectorId} failed`);

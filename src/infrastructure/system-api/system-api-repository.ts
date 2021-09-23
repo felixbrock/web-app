@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { nodeEnv } from '../../config';
 import SystemDto from './system-dto';
 
@@ -13,12 +13,18 @@ export default class SystemApiRepositoryImpl {
   };
 
   public static getBy = async (
-    params: URLSearchParams
+    params: URLSearchParams,
+    jwt: string
   ): Promise<SystemDto[]> => {
     try {
       const apiRoot = await SystemApiRepositoryImpl.getRoot();
 
-      const response = await axios.get(`${apiRoot}/systems`, { params });
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+        params,
+      };
+
+      const response = await axios.get(`${apiRoot}/systems`, config);
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
@@ -28,12 +34,17 @@ export default class SystemApiRepositoryImpl {
   };
 
   public static getOne = async (
-    systemId: string
+    systemId: string,
+    jwt: string
   ): Promise<SystemDto | null> => {
     try {
       const apiRoot = await SystemApiRepositoryImpl.getRoot();
 
-      const response = await axios.get(`${apiRoot}/system/${systemId}`);
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+      };
+
+      const response = await axios.get(`${apiRoot}/system/${systemId}`, config);
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
@@ -42,11 +53,21 @@ export default class SystemApiRepositoryImpl {
     }
   };
 
-  public static delete = async (systemId: string): Promise<boolean> => {
+  public static delete = async (
+    systemId: string,
+    jwt: string
+  ): Promise<boolean> => {
     try {
       const apiRoot = await SystemApiRepositoryImpl.getRoot();
 
-      const response = await axios.delete(`${apiRoot}/system/${systemId}`);
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+      };
+
+      const response = await axios.delete(
+        `${apiRoot}/system/${systemId}`,
+        config
+      );
       const jsonResponse = response.data;
       if (response.status === 200) return true;
       throw new Error(jsonResponse);
@@ -55,11 +76,19 @@ export default class SystemApiRepositoryImpl {
     }
   };
 
-  public static post = async (name: string): Promise<SystemDto | null> => {
+  public static post = async (
+    name: string,
+    jwt: string
+  ): Promise<SystemDto | null> => {
     try {
       const apiRoot = await SystemApiRepositoryImpl.getRoot();
 
-      const response = await axios.post(`${apiRoot}/system`, { name });
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+        data: { name },
+      };
+
+      const response = await axios.post(`${apiRoot}/system`, config);
       const jsonResponse = response.data;
       if (response.status === 201) return jsonResponse;
       throw new Error(jsonResponse);

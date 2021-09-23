@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { nodeEnv } from '../../config';
 import SelectorDto from './selector-dto';
 
@@ -13,12 +13,17 @@ export default class SelectorApiRepositoryImpl {
   };
 
   public static getOne = async (
-    selectorId: string
+    selectorId: string,
+    jwt: string
   ): Promise<SelectorDto | null> => {
     try {
       const apiRoot = await SelectorApiRepositoryImpl.getRoot();
 
-      const response = await axios.get(`${apiRoot}/selector/${selectorId}`);
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+      };
+
+      const response = await axios.get(`${apiRoot}/selector/${selectorId}`, config);
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
@@ -28,12 +33,18 @@ export default class SelectorApiRepositoryImpl {
   };
 
   public static getBy = async (
-    params: URLSearchParams
+    params: URLSearchParams,
+    jwt: string
   ): Promise<SelectorDto[]> => {
     try {
       const apiRoot = await SelectorApiRepositoryImpl.getRoot();
 
-      const response = await axios.get(`${apiRoot}/selectors`, { params });
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+        params
+      };
+
+      const response = await axios.get(`${apiRoot}/selectors`, config);
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
@@ -44,15 +55,18 @@ export default class SelectorApiRepositoryImpl {
 
   public static post = async (
     content: string,
-    systemId: string
+    systemId: string,
+    jwt: string
   ): Promise<SelectorDto | null> => {
     try {
       const apiRoot = await SelectorApiRepositoryImpl.getRoot();
 
-      const response = await axios.post(`${apiRoot}/selector`, {
-        content,
-        systemId,
-      });
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+        data: {content, systemId}
+      };
+
+      const response = await axios.post(`${apiRoot}/selector`, config);
       const jsonResponse = response.data;
       if (response.status === 201) return jsonResponse;
       throw new Error(jsonResponse);
@@ -61,11 +75,15 @@ export default class SelectorApiRepositoryImpl {
     }
   };
 
-  public static delete = async (selectorId: string): Promise<boolean> => {
+  public static delete = async (selectorId: string, jwt: string): Promise<boolean> => {
     try {
       const apiRoot = await SelectorApiRepositoryImpl.getRoot();
 
-      const response = await axios.delete(`${apiRoot}/selector/${selectorId}`);
+      const config: AxiosRequestConfig = {
+        headers: { Authorization: `Bearer ${jwt}` },
+      };
+
+      const response = await axios.delete(`${apiRoot}/selector/${selectorId}`, config);
       const jsonResponse = response.data;
       if (response.status === 200) return true;
       throw new Error(jsonResponse);

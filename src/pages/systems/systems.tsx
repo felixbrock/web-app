@@ -67,7 +67,8 @@ export const buildQueryTimestamp = (date: Date): string => {
 const getDateData = async (
   startDate: Date,
   endDate: Date,
-  systemId: string
+  systemId: string,
+  jwt: string
 ): Promise<DateData> => {
   const dateRegistry = generateDateDataStub(startDate, endDate);
 
@@ -76,7 +77,8 @@ const getDateData = async (
 
   try {
     const selectors: SelectorDto[] = await SelectorApiRepository.getBy(
-      new URLSearchParams({ systemId, alertCreatedOnStart, alertCreatedOnEnd })
+      new URLSearchParams({ systemId, alertCreatedOnStart, alertCreatedOnEnd }),
+      jwt
     );
 
     selectors.forEach((selector) => {
@@ -96,7 +98,10 @@ const getDateData = async (
   }
 };
 
-const getHeatmapData = async (systemId: string): Promise<HeatmapData> => {
+const getHeatmapData = async (
+  systemId: string,
+  jwt: string
+): Promise<HeatmapData> => {
   const startDate = new Date();
   startDate.setUTCDate(startDate.getUTCDate() - 7 * 20 + 1);
 
@@ -112,7 +117,7 @@ const getHeatmapData = async (systemId: string): Promise<HeatmapData> => {
   endDate.setUTCMilliseconds(999);
 
   try {
-    const dateRegistry = await getDateData(startDate, endDate, systemId);
+    const dateRegistry = await getDateData(startDate, endDate, systemId, jwt);
 
     const heatmapData = buildHeatmapData(startDate, endDate, dateRegistry);
 
@@ -123,13 +128,15 @@ const getHeatmapData = async (systemId: string): Promise<HeatmapData> => {
 };
 
 const getOldestAlertsAccessedOnByUser = async (
-  accountId: string
+  accountId: string,
+  jwt: string
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
   const accessedOnByUserValues: OldestAlertsAccessedOnByUser[] = [];
 
   try {
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId })
+      new URLSearchParams({ accountId }),
+      jwt
     );
 
     automations.forEach((automation) => {
@@ -292,8 +299,11 @@ export default (): ReactElement => {
 
   const [accountId, setAccountId] = useState('');
 
+  const [jwt, setJwt] = useState('');
+
   const renderSystems = () => {
     setUser(undefined);
+    setJwt('');
     setAccountId('');
 
     Auth.currentAuthenticatedUser()
@@ -311,7 +321,18 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!user) return;
 
-    AccountApiRepository.getBy(new URLSearchParams({ userId: user.username }))
+    Auth.currentSession()
+      .then((session) => {
+        const accessToken = session.getAccessToken();
+
+        const token = accessToken.getJwtToken();
+        setJwt(token);
+
+        return AccountApiRepository.getBy(
+          new URLSearchParams({ userId: user.username }),
+          token
+        );
+      })
       .then((accounts) => {
         if (!accounts.length) throw new Error(`No accounts found for user`);
 
@@ -327,12 +348,17 @@ export default (): ReactElement => {
   }, [user]);
 
   useEffect(() => {
-    if(!accountId) return;
+    if (!accountId) return;
 
-    SystemApiRepository.getBy(new URLSearchParams({}))
+    if (!jwt) {
+      setSystemError('No user authorization found');
+      setShowErrorModal(true);
+    }
+
+    SystemApiRepository.getBy(new URLSearchParams({}), jwt)
       .then((systemDtos) => {
         setSystems(systemDtos);
-        return getOldestAlertsAccessedOnByUser(accountId);
+        return getOldestAlertsAccessedOnByUser(accountId, jwt);
       })
       .then((accessedOnByUserValues) => {
         setAlertsAccessedOnByUser(accessedOnByUserValues);
@@ -353,7 +379,8 @@ export default (): ReactElement => {
     }
 
     AutomationApiRepository.getBy(
-      new URLSearchParams({ subscriptionSystemId: systemId })
+      new URLSearchParams({ subscriptionSystemId: systemId }),
+      jwt
     )
       .then((automationElements) => {
         const content: string[][] = automationElements.map((automation) => [
@@ -373,7 +400,7 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!registrationSubmit || !initialRenderFinished.current) return;
 
-    SystemApiRepository.post(systemName)
+    SystemApiRepository.post(systemName, jwt)
       .then((system) => {
         if (!system) throw new Error(`Creation of system ${systemName} failed`);
 
@@ -385,7 +412,7 @@ export default (): ReactElement => {
         if (!selectorContent || isWhitespaceString(selectorContent))
           throw new Error('');
 
-        return SelectorApiRepository.post(selectorContent, system.id);
+        return SelectorApiRepository.post(selectorContent, system.id, jwt);
       })
       .then((selector) => {
         if (!selector)
@@ -420,7 +447,7 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!toDelete || !initialRenderFinished.current) return;
 
-    SystemApiRepository.delete(systemId)
+    SystemApiRepository.delete(systemId, jwt)
       .then((deleted) => {
         if (!deleted) throw new Error(`Deletion of system ${systemId} failed`);
 
@@ -445,7 +472,7 @@ export default (): ReactElement => {
       return;
     }
 
-    getHeatmapData(systemId)
+    getHeatmapData(systemId, jwt)
       .then((heatmapData) => setHeatmapElement(Heatmap(heatmapData)))
       .catch((error) => {
         setSystemError(typeof error === 'string' ? error : error.message);
