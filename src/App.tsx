@@ -23,41 +23,9 @@ import {
   FooterContainer,
   App,
 } from './App-Items';
-import { nodeEnv } from './config';
+import { getAuthEnvConfig, getOAuthEnvConfig } from './config';
 
 export default (): ReactElement => {
-  const authEnvConfig: any = {};
-  const oAuthEnvConfig: any = {};
-
-  switch (nodeEnv) {
-    case 'development':
-      authEnvConfig.userPoolId = 'eu-central-1_dEht1JWXi';
-      authEnvConfig.userPoolWebClientId = '30b5stvm9ueo53hu8jt2kfs0td';
-
-      oAuthEnvConfig.domain = 'hivedive.auth.eu-central-1.amazoncognito.com';
-      oAuthEnvConfig.redirectSignIn = 'http://localhost:3006';
-      oAuthEnvConfig.redirectSignOut = 'http://localhost:3006';
-      break;
-    case 'test':
-      authEnvConfig.userPoolId = 'eu-central-1_ITfib17Uu';
-      authEnvConfig.userPoolWebClientId = '4uat3ul6agn2dsipki1kvifq0b';
-
-      oAuthEnvConfig.domain = 'auth-test.hivedive.io';
-      oAuthEnvConfig.redirectSignIn = 'https://app-test.hivedive.io';
-      oAuthEnvConfig.redirectSignOut = 'https://app-test.hivedive.io';
-      break;
-    case 'production':
-      authEnvConfig.userPoolId = 'eu-central-1_dajdkLW0m';
-      authEnvConfig.userPoolWebClientId = '4lbatrkhi1q20f6us7ti8rqtfb';
-
-      oAuthEnvConfig.domain = 'auth.hivedive.io';
-      oAuthEnvConfig.redirectSignIn = 'https://app.hivedive.io';
-      oAuthEnvConfig.redirectSignOut = 'https://app.hivedive.io';
-      break;
-    default:
-      break;
-  }
-
   Amplify.configure({
     Auth: {
       region: 'eu-central-1',
@@ -68,12 +36,12 @@ export default (): ReactElement => {
       //   expires: 365,
       //   secure: true,
       // },
-      ...authEnvConfig,
+      ...getAuthEnvConfig(),
     },
     oauth: {
       scope: ['email', 'openid'],
       responseType: 'token',
-      ...oAuthEnvConfig,
+      ...getOAuthEnvConfig(),
     },
   });
 

@@ -1,36 +1,19 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { nodeEnv } from '../../config';
+import { getRoot } from '../../config';
 import SystemDto from './system-dto';
 
 // TODO - Implement Interface regarding clean architecture
 export default class SystemApiRepositoryImpl {
-  private static getRoot = async (): Promise<string> => {
-    const path = 'api/v1';
+  private static path = 'api/v1';
 
-    let root = '';
-    switch (nodeEnv) {
-      case 'development':
-        root = `http://localhost:3002/${path}`;
-        break;
-      case 'test':
-        root = `https://bff-test.hivedive.io/system-service/${path}`;
-        break;
-      case 'production':
-        root = `https://bff.hivedive.io/system-service/${path}`;
-        break;
-      default:
-        break;
-    }
-
-    return root;
-  };
+  private static root = getRoot('system', '3002', this.path);
 
   public static getBy = async (
     params: URLSearchParams,
     jwt: string
   ): Promise<SystemDto[]> => {
     try {
-      const apiRoot = await SystemApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -51,7 +34,7 @@ export default class SystemApiRepositoryImpl {
     jwt: string
   ): Promise<SystemDto | null> => {
     try {
-      const apiRoot = await SystemApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -71,7 +54,7 @@ export default class SystemApiRepositoryImpl {
     jwt: string
   ): Promise<boolean> => {
     try {
-      const apiRoot = await SystemApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -94,7 +77,7 @@ export default class SystemApiRepositoryImpl {
     jwt: string
   ): Promise<SystemDto | null> => {
     try {
-      const apiRoot = await SystemApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },

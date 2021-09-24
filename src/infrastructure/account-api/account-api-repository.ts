@@ -1,36 +1,19 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { nodeEnv } from '../../config';
+import { getRoot } from '../../config';
 import AccountDto from './account-dto';
 
 // TODO - Implement Interface regarding clean architecture
 export default class AccountApiRepositoryImpl {
-  private static getRoot = async (): Promise<string> => {
-    const path = 'api/v1';
+  private static path = 'api/v1';
 
-    let root = '';
-    switch (nodeEnv) {
-      case 'development':
-        root = `http://localhost:8081/${path}`;
-        break;
-      case 'test':
-        root = `https://bff-test.hivedive.io/account-service/${path}`;
-        break;
-      case 'production':
-        root = `https://bff.hivedive.io/account-service/${path}`;
-        break;
-      default:
-        break;
-    }
-
-    return root;
-  };
+  private static root = getRoot('account', '8081', this.path);
 
   public static getBy = async (
     params: URLSearchParams,
     jwt: string
   ): Promise<AccountDto[]> => {
     try {
-      const apiRoot = await AccountApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },

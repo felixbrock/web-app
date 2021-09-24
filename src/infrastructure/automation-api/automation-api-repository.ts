@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { nodeEnv } from '../../config';
+import { getRoot} from '../../config';
 import AutomationDto from './automation-dto';
 import SubscriptionDto from './subscription-dto';
 
@@ -10,33 +10,16 @@ export interface UpdateSubscriptionRequestObject {
 
 // TODO - Implement Interface regarding clean architecture
 export default class AutomationApiRepositoryImpl {
-  private static getRoot = async (): Promise<string> => {
-    const path = 'api/v1';
+  private static path = 'api/v1';
 
-    let root = '';
-    switch (nodeEnv) {
-      case 'development':
-        root = `http://localhost:8080/${path}`;
-        break;
-      case 'test':
-        root = `https://bff-test.hivedive.io/automation-service/${path}`;
-        break;
-      case 'production':
-        root = `https://bff.hivedive.io/automation-service/${path}`;
-        break;
-      default:
-        break;
-    }
-
-    return root;
-  };
+  private static root = getRoot('automation', '8080', this.path);
 
   public static getOne = async (
     automationId: string,
     jwt: string
   ): Promise<AutomationDto | null> => {
     try {
-      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -56,7 +39,7 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<AutomationDto[]> => {
     try {
-      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -78,7 +61,7 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<AutomationDto | null> => {
     try {
-      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -96,7 +79,7 @@ export default class AutomationApiRepositoryImpl {
 
   public static delete = async (automationId: string, jwt: string): Promise<boolean> => {
     try {
-      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -121,7 +104,7 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<SubscriptionDto | null> => {
     try {
-      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -146,7 +129,7 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<SubscriptionDto[]> => {
     try {
-      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -171,7 +154,7 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<boolean> => {
     try {
-      const apiRoot = await AutomationApiRepositoryImpl.getRoot();
+      const apiRoot = await this.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
