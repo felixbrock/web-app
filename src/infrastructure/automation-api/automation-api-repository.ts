@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { getRoot} from '../../config';
+import { getRoot } from '../../config';
 import AutomationDto from './automation-dto';
 import SubscriptionDto from './subscription-dto';
 
@@ -12,20 +12,27 @@ export interface UpdateSubscriptionRequestObject {
 export default class AutomationApiRepositoryImpl {
   private static path = 'api/v1';
 
-  private static root = getRoot('automation', '8080', this.path);
+  private static root = getRoot(
+    'automation',
+    '8080',
+    AutomationApiRepositoryImpl.path
+  );
 
   public static getOne = async (
     automationId: string,
     jwt: string
   ): Promise<AutomationDto | null> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await AutomationApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
       };
 
-      const response = await axios.get(`${apiRoot}/automation/${automationId}`, config);
+      const response = await axios.get(
+        `${apiRoot}/automation/${automationId}`,
+        config
+      );
       const jsonResponse = response.data;
       if (response.status === 200) return jsonResponse;
       throw new Error(jsonResponse);
@@ -39,11 +46,11 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<AutomationDto[]> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await AutomationApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        params
+        params,
       };
 
       const response = await axios.get(`${apiRoot}/automations`, config);
@@ -61,11 +68,11 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<AutomationDto | null> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await AutomationApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        data:{name, accountId}
+        data: { name, accountId },
       };
 
       const response = await axios.post(`${apiRoot}/automation`, config);
@@ -77,9 +84,12 @@ export default class AutomationApiRepositoryImpl {
     }
   };
 
-  public static delete = async (automationId: string, jwt: string): Promise<boolean> => {
+  public static delete = async (
+    automationId: string,
+    jwt: string
+  ): Promise<boolean> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await AutomationApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -104,11 +114,11 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<SubscriptionDto | null> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await AutomationApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: {systemId, selectorId}
+        data: { systemId, selectorId },
       };
 
       const response = await axios.post(
@@ -129,11 +139,11 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<SubscriptionDto[]> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await AutomationApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: {subscriptions}
+        data: { subscriptions },
       };
 
       const response = await axios.patch(
@@ -154,11 +164,11 @@ export default class AutomationApiRepositoryImpl {
     jwt: string
   ): Promise<boolean> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await AutomationApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        params
+        params,
       };
 
       const response = await axios.delete(

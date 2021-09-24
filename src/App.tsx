@@ -26,6 +26,7 @@ import {
 import { getAuthEnvConfig, getOAuthEnvConfig } from './config';
 
 export default (): ReactElement => {
+
   Amplify.configure({
     Auth: {
       region: 'eu-central-1',

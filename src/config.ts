@@ -3,7 +3,7 @@ export const serviceDiscoveryNamespace = 'hivedive';
 export const getAuthEnvConfig = (): any => {
   const authEnvConfig: any = {};
 
-  switch (process.env.APP_STAGE) {
+  switch (process.env.REACT_APP_STAGE) {
     case 'development':
       authEnvConfig.userPoolId = 'eu-central-1_dEht1JWXi';
       authEnvConfig.userPoolWebClientId = '30b5stvm9ueo53hu8jt2kfs0td';
@@ -26,7 +26,7 @@ export const getAuthEnvConfig = (): any => {
 export const getOAuthEnvConfig = (): any => {
   const oAuthEnvConfig: any = {};
 
-  switch (process.env.APP_STAGE) {
+  switch (process.env.REACT_APP_STAGE) {
     case 'development':
       oAuthEnvConfig.domain = 'hivedive.auth.eu-central-1.amazoncognito.com';
       oAuthEnvConfig.redirectSignIn = 'http://localhost:3006';
@@ -51,7 +51,7 @@ export const getOAuthEnvConfig = (): any => {
 
 export const getRoot = (serviceName: string, port: string, path: string): string => {
   let root = '';
-  switch (process.env.APP_STAGE) {
+  switch (process.env.REACT_APP_STAGE) {
     case 'development':
       root = `http://localhost:${port}/${path}`;
       break;

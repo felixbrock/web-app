@@ -6,14 +6,18 @@ import SelectorDto from './selector-dto';
 export default class SelectorApiRepositoryImpl {
   private static path = 'api/v1';
 
-  private static root = getRoot('selector', '3000', this.path);
-  
+  private static root = getRoot(
+    'selector',
+    '3000',
+    SelectorApiRepositoryImpl.path
+  );
+
   public static getOne = async (
     selectorId: string,
     jwt: string
   ): Promise<SelectorDto | null> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await SelectorApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -36,7 +40,7 @@ export default class SelectorApiRepositoryImpl {
     jwt: string
   ): Promise<SelectorDto[]> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await SelectorApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -58,7 +62,7 @@ export default class SelectorApiRepositoryImpl {
     jwt: string
   ): Promise<SelectorDto | null> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await SelectorApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -79,7 +83,7 @@ export default class SelectorApiRepositoryImpl {
     jwt: string
   ): Promise<boolean> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await SelectorApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },

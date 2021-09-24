@@ -6,14 +6,14 @@ import SystemDto from './system-dto';
 export default class SystemApiRepositoryImpl {
   private static path = 'api/v1';
 
-  private static root = getRoot('system', '3002', this.path);
+  private static root = getRoot('system', '3002', SystemApiRepositoryImpl.path);
 
   public static getBy = async (
     params: URLSearchParams,
     jwt: string
   ): Promise<SystemDto[]> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await SystemApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -34,7 +34,7 @@ export default class SystemApiRepositoryImpl {
     jwt: string
   ): Promise<SystemDto | null> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await SystemApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -54,7 +54,7 @@ export default class SystemApiRepositoryImpl {
     jwt: string
   ): Promise<boolean> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await SystemApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -77,7 +77,7 @@ export default class SystemApiRepositoryImpl {
     jwt: string
   ): Promise<SystemDto | null> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await SystemApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },

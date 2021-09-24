@@ -6,14 +6,18 @@ import AccountDto from './account-dto';
 export default class AccountApiRepositoryImpl {
   private static path = 'api/v1';
 
-  private static root = getRoot('account', '8081', this.path);
+  private static root = getRoot(
+    'account',
+    '8081',
+    AccountApiRepositoryImpl.path
+  );
 
   public static getBy = async (
     params: URLSearchParams,
     jwt: string
   ): Promise<AccountDto[]> => {
     try {
-      const apiRoot = await this.root;
+      const apiRoot = await AccountApiRepositoryImpl.root;
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
