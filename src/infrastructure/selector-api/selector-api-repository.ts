@@ -4,13 +4,7 @@ import SelectorDto from './selector-dto';
 
 // TODO - Implement Interface regarding clean architecture
 export default class SelectorApiRepositoryImpl {
-  private static path = 'api/v1';
-
-  private static root = getRoot(
-    'selector',
-    '3000',
-    SelectorApiRepositoryImpl.path
-  );
+  private static root = getRoot('selector', '3000', 'api/v1');
 
   public static getOne = async (
     selectorId: string,

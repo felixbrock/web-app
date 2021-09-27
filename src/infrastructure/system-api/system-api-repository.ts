@@ -4,9 +4,7 @@ import SystemDto from './system-dto';
 
 // TODO - Implement Interface regarding clean architecture
 export default class SystemApiRepositoryImpl {
-  private static path = 'api/v1';
-
-  private static root = getRoot('system', '3002', SystemApiRepositoryImpl.path);
+  private static root = getRoot('system', '3002', 'api/v1');
 
   public static getBy = async (
     params: URLSearchParams,

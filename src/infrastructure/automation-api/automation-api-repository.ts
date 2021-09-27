@@ -10,13 +10,7 @@ export interface UpdateSubscriptionRequestObject {
 
 // TODO - Implement Interface regarding clean architecture
 export default class AutomationApiRepositoryImpl {
-  private static path = 'api/v1';
-
-  private static root = getRoot(
-    'automation',
-    '8080',
-    AutomationApiRepositoryImpl.path
-  );
+  private static root = getRoot('automation', '8080', 'api/v1');
 
   public static getOne = async (
     automationId: string,

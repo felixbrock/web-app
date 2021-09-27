@@ -4,13 +4,7 @@ import AccountDto from './account-dto';
 
 // TODO - Implement Interface regarding clean architecture
 export default class AccountApiRepositoryImpl {
-  private static path = 'api/v1';
-
-  private static root = getRoot(
-    'account',
-    '8081',
-    AccountApiRepositoryImpl.path
-  );
+  private static root = getRoot('account', '8081', 'api/v1');
 
   public static getBy = async (
     params: URLSearchParams,
