@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { getRoot } from '../../config';
+import getRoot from '../shared/api-root-builder';
 import SelectorDto from './selector-dto';
 
 // TODO - Implement Interface regarding clean architecture

@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { getRoot } from '../../config';
+import getRoot from '../shared/api-root-builder';
 import AutomationDto from './automation-dto';
 import SubscriptionDto from './subscription-dto';
 
