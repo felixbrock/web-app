@@ -23,7 +23,7 @@ import {
   FooterContainer,
   App,
 } from './App-Items';
-import { getAuthEnvConfig, getOAuthEnvConfig } from './config';
+import { authEnvConfig, oAuthEnvConfig } from './config';
 
 export default (): ReactElement => {
 
@@ -37,12 +37,12 @@ export default (): ReactElement => {
       //   expires: 365,
       //   secure: true,
       // },
-      ...getAuthEnvConfig(),
+      ...authEnvConfig,
     },
     oauth: {
       scope: ['email', 'openid'],
       responseType: 'token',
-      ...getOAuthEnvConfig(),
+      ...oAuthEnvConfig,
     },
   });
 

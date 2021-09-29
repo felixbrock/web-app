@@ -1,6 +1,6 @@
 export const serviceDiscoveryNamespace = 'hivedive';
 
-export const getAuthEnvConfig = (): any => {
+const getAuthEnvConfig = (): any => {
   const authEnvConfig: any = {};
 
   switch (process.env.REACT_APP_STAGE) {
@@ -23,7 +23,9 @@ export const getAuthEnvConfig = (): any => {
   return authEnvConfig;
 };
 
-export const getOAuthEnvConfig = (): any => {
+export const authEnvConfig = getAuthEnvConfig();
+
+const getOAuthEnvConfig = (): any => {
   const oAuthEnvConfig: any = {};
 
   switch (process.env.REACT_APP_STAGE) {
@@ -48,3 +50,5 @@ export const getOAuthEnvConfig = (): any => {
 
   return oAuthEnvConfig;
 };
+
+export const oAuthEnvConfig = getOAuthEnvConfig();
