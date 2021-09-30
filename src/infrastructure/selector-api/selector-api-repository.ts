@@ -60,10 +60,9 @@ export default class SelectorApiRepositoryImpl {
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: { content, systemId },
       };
 
-      const response = await axios.post(`${apiRoot}/selector`, config);
+      const response = await axios.post(`${apiRoot}/selector`, { content, systemId }, config);
       const jsonResponse = response.data;
       if (response.status === 201) return jsonResponse;
       throw new Error(jsonResponse);

@@ -79,10 +79,9 @@ export default class SystemApiRepositoryImpl {
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: { name },
       };
 
-      const response = await axios.post(`${apiRoot}/system`, config);
+      const response = await axios.post(`${apiRoot}/system`, { name }, config);
       const jsonResponse = response.data;
       if (response.status === 201) return jsonResponse;
       throw new Error(jsonResponse);

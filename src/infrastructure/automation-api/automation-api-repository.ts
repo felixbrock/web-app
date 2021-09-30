@@ -66,10 +66,13 @@ export default class AutomationApiRepositoryImpl {
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: { name, accountId },
       };
 
-      const response = await axios.post(`${apiRoot}/automation`, config);
+      const response = await axios.post(
+        `${apiRoot}/automation`,
+        { name, accountId },
+        config
+      );
       const jsonResponse = response.data;
       if (response.status === 201) return jsonResponse;
       throw new Error(jsonResponse);
@@ -112,11 +115,11 @@ export default class AutomationApiRepositoryImpl {
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: { systemId, selectorId },
       };
 
       const response = await axios.post(
         `${apiRoot}/automation/${automationId}/subscription`,
+        { systemId, selectorId },
         config
       );
       const jsonResponse = response.data;
@@ -137,11 +140,11 @@ export default class AutomationApiRepositoryImpl {
 
       const config: AxiosRequestConfig = {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: { subscriptions },
       };
 
       const response = await axios.patch(
         `${apiRoot}/automation/${automationId}/subscriptions`,
+        { subscriptions },
         config
       );
       const jsonResponse = response.data;
