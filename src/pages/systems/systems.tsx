@@ -16,7 +16,6 @@ import Table from '../../components/table/table';
 import SystemDto from '../../infrastructure/system-api/system-dto';
 import SystemApiRepository from '../../infrastructure/system-api/system-api-repository';
 import AutomationApiRepository from '../../infrastructure/automation-api/automation-api-repository';
-import AccountApiRepository from '../../infrastructure/account-api/account-api-repository';
 import AutomationDto from '../../infrastructure/automation-api/automation-dto';
 import SelectorApiRepository from '../../infrastructure/selector-api/selector-api-repository';
 import SelectorDto from '../../infrastructure/selector-api/selector-dto';
@@ -128,14 +127,13 @@ const getHeatmapData = async (
 };
 
 const getOldestAlertsAccessedOnByUser = async (
-  accountId: string,
   jwt: string
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
   const accessedOnByUserValues: OldestAlertsAccessedOnByUser[] = [];
 
   try {
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId }),
+      new URLSearchParams({}),
       jwt
     );
 
@@ -297,14 +295,11 @@ export default (): ReactElement => {
 
   const [user, setUser] = useState<any>();
 
-  const [accountId, setAccountId] = useState('');
-
   const [jwt, setJwt] = useState('');
 
   const renderSystems = () => {
     setUser(undefined);
     setJwt('');
-    setAccountId('');
 
     Auth.currentAuthenticatedUser()
       .then((cognitoUser) => setUser(cognitoUser))
@@ -327,19 +322,6 @@ export default (): ReactElement => {
 
         const token = accessToken.getJwtToken();
         setJwt(token);
-
-        return AccountApiRepository.getBy(
-          new URLSearchParams({ userId: user.username }),
-          token
-        );
-      })
-      .then((accounts) => {
-        if (!accounts.length) throw new Error(`No accounts found for user`);
-
-        if (accounts.length > 1)
-          throw new Error(`Multiple accounts found for user`);
-
-        setAccountId(accounts[0].id);
       })
       .catch((error) => {
         setSystemError(typeof error === 'string' ? error : error.message);
@@ -348,17 +330,15 @@ export default (): ReactElement => {
   }, [user]);
 
   useEffect(() => {
-    if (!accountId) return;
+    if (!jwt) return;
 
-    if (!jwt) {
-      setSystemError('No user authorization found');
-      setShowErrorModal(true);
-    }
+    console.log(jwt);
+    
 
     SystemApiRepository.getBy(new URLSearchParams({}), jwt)
       .then((systemDtos) => {
         setSystems(systemDtos);
-        return getOldestAlertsAccessedOnByUser(accountId, jwt);
+        return getOldestAlertsAccessedOnByUser(jwt);
       })
       .then((accessedOnByUserValues) => {
         setAlertsAccessedOnByUser(accessedOnByUserValues);
@@ -369,7 +349,7 @@ export default (): ReactElement => {
         setSystemError(typeof error === 'string' ? error : error.message);
         setShowErrorModal(true);
       });
-  }, [accountId]);
+  }, [jwt]);
 
   useEffect(() => {
     if (!initialRenderFinished.current) return;

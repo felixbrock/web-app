@@ -12,9 +12,9 @@ import SystemApiRepository from '../../infrastructure/system-api/system-api-repo
 export const buildQueryTimestamp = (date: Date): string => {
   const dateYear = date.getUTCFullYear();
   const dateMonth =
-    date.getUTCMonth() < 10
+    date.getUTCMonth() < 9
       ? `0${(date.getUTCMonth() + 1).toString()}`
-      : date.getUTCMonth().toString();
+      : (date.getUTCMonth() + 1).toString();
   const dateDate =
     date.getUTCDate() < 10
       ? `0${date.getUTCDate().toString()}`
@@ -147,7 +147,7 @@ export default (): ReactElement => {
   const [systemError, setSystemError] = useState('');
 
   const [user, setUser] = useState();
-  
+
   const renderHistoricalData = () => {
     setUser(undefined);
 
@@ -162,7 +162,7 @@ export default (): ReactElement => {
   };
 
   useEffect(() => {
-    if(!user) return;
+    if (!user) return;
 
     Auth.currentSession()
       .then((session) => {
