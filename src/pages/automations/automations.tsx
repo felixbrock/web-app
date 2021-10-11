@@ -113,9 +113,13 @@ const getSubscriptionInfo = async (
     await Promise.all(
       subscriptions.map(async (subscription) => {
         const selector = await SelectorApiRepository.getOne(
-          subscription.selectorId, jwt
+          subscription.selectorId,
+          jwt
         );
-        const system = await SystemApiRepository.getOne(subscription.systemId, jwt);
+        const system = await SystemApiRepository.getOne(
+          subscription.systemId,
+          jwt
+        );
 
         if (!selector)
           throw new Error(
@@ -147,7 +151,7 @@ const getSubscriptionInfo = async (
 const updateAlertAccessedOnValues = async (
   automationId: string,
   subscriptions: SubscriptionDto[],
-  jwt:string
+  jwt: string
 ): Promise<SubscriptionDto[]> => {
   try {
     const updatedSubscriptionObjects: UpdateSubscriptionRequestObject[] =
@@ -159,7 +163,8 @@ const updateAlertAccessedOnValues = async (
     const updatedSubscriptions =
       await AutomationApiRepository.updateSubscriptions(
         automationId,
-        updatedSubscriptionObjects, jwt
+        updatedSubscriptionObjects,
+        jwt
       );
 
     if (updatedSubscriptionObjects.length && !updatedSubscriptions.length)
@@ -175,13 +180,14 @@ const updateAlertAccessedOnValues = async (
 
 const getOldestAlertsAccessedOnByUser = async (
   accountId: string,
-  jwt:string
+  jwt: string
 ): Promise<OldestAlertsAccessedOnByUser[]> => {
   const accessedOnByUserElements: OldestAlertsAccessedOnByUser[] = [];
 
   try {
     const automations: AutomationDto[] = await AutomationApiRepository.getBy(
-      new URLSearchParams({ accountId }), jwt
+      new URLSearchParams({ accountId }),
+      jwt
     );
 
     automations.forEach((automation) => {
@@ -474,7 +480,8 @@ export default (): ReactElement => {
         selectors: await Promise.all(
           automation.subscriptions.map(async (subscription) => {
             const selector = await SelectorApiRepository.getOne(
-              subscription.selectorId, jwt
+              subscription.selectorId,
+              jwt
             );
 
             if (!selector)
@@ -511,7 +518,7 @@ export default (): ReactElement => {
     getSubscriptionInfo(
       automation.subscriptions,
       automationId,
-      handleIsSubscribedValue, 
+      handleIsSubscribedValue,
       jwt
     )
       .then((subscriptionElements) => {
@@ -541,7 +548,8 @@ export default (): ReactElement => {
 
         const deleteSuccess = await AutomationApiRepository.deleteSubscription(
           automationId,
-          new URLSearchParams({ selectorId: key }), jwt
+          new URLSearchParams({ selectorId: key }),
+          jwt
         );
 
         if (!deleteSuccess)
@@ -647,7 +655,7 @@ export default (): ReactElement => {
   useEffect(() => {
     if (!registrationSubmit || !initialRenderFinished.current) return;
 
-    AutomationApiRepository.post(automationName, accountId, jwt)
+    AutomationApiRepository.post(automationName, jwt)
       .then((automation) => {
         if (!automation)
           throw new Error(`Creation of automation ${automationName} failed`);

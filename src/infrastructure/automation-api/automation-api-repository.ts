@@ -58,7 +58,6 @@ export default class AutomationApiRepositoryImpl {
 
   public static post = async (
     name: string,
-    accountId: string,
     jwt: string
   ): Promise<AutomationDto | null> => {
     try {
@@ -70,7 +69,7 @@ export default class AutomationApiRepositoryImpl {
 
       const response = await axios.post(
         `${apiRoot}/automation`,
-        { name, accountId },
+        { name },
         config
       );
       const jsonResponse = response.data;

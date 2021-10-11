@@ -40,9 +40,9 @@ const isWhitespaceString = (text: string): boolean => !/\S/.test(text);
 export const buildQueryTimestamp = (date: Date): string => {
   const dateYear = date.getUTCFullYear();
   const dateMonth =
-    date.getUTCMonth() < 10
+    date.getUTCMonth() < 9
       ? `0${(date.getUTCMonth() + 1).toString()}`
-      : date.getUTCMonth().toString();
+      : (date.getUTCMonth() + 1).toString();
   const dateDate =
     date.getUTCDate() < 10
       ? `0${date.getUTCDate().toString()}`
@@ -331,9 +331,6 @@ export default (): ReactElement => {
 
   useEffect(() => {
     if (!jwt) return;
-
-    console.log(jwt);
-    
 
     SystemApiRepository.getBy(new URLSearchParams({}), jwt)
       .then((systemDtos) => {

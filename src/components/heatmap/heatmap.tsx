@@ -72,9 +72,9 @@ export interface DateData {
 export const buildDateKey = (date: Date): string => {
   const dateYear = date.getUTCFullYear();
   const dateMonth =
-    date.getUTCMonth() < 10
+    date.getUTCMonth() < 9
       ? `0${(date.getUTCMonth() + 1).toString()}`
-      : date.getUTCMonth().toString();
+      : (date.getUTCMonth() + 1).toString();
   const dateDate =
     date.getUTCDate() < 10
       ? `0${date.getUTCDate().toString()}`
@@ -177,13 +177,17 @@ const buildSeries = (
   return heatmapData.reverse();
 };
 
-export const buildHeatmapData = (startDate: Date, endDate: Date, dateRegistry: DateData): HeatmapData => {
-    const dayRegistry = orderByDay(dateRegistry);
+export const buildHeatmapData = (
+  startDate: Date,
+  endDate: Date,
+  dateRegistry: DateData
+): HeatmapData => {
+  const dayRegistry = orderByDay(dateRegistry);
 
-    return {
-      metaData: { startDate },
-      series: buildSeries(dayRegistry, endDate.getUTCDay()),
-    };
+  return {
+    metaData: { startDate },
+    series: buildSeries(dayRegistry, endDate.getUTCDay()),
+  };
 };
 
 const type = 'heatmap';
@@ -219,11 +223,13 @@ const buildOptions = (
         );
 
         const month =
-          date.getUTCMonth() < 10
+          date.getUTCMonth() < 9
             ? `0${date.getUTCMonth() + 1}`
             : date.getUTCMonth() + 1;
+        
+        const dateDate = date.getUTCDate() < 10 ? `0${date.getUTCDate()}` : date.getUTCDate();
 
-        return `${date.getUTCFullYear()}-${month}-${date.getUTCDate()}`;
+        return `${date.getUTCFullYear()}-${month}-${dateDate}`;
       },
     },
     y: {
