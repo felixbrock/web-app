@@ -1,4 +1,4 @@
-# web-app Hivedive
+# web-app
 
 Setup
 npx create-react-app my-app --template typescript
