@@ -350,7 +350,7 @@ export default (props: any): ReactElement => {
         setJwt(token);
 
         return AccountApiRepository.getBy(
-          new URLSearchParams({ userId: user.username }),
+          new URLSearchParams({}),
           token
         );
       })

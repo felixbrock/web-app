@@ -432,10 +432,7 @@ export default (): ReactElement => {
         const token = accessToken.getJwtToken();
         setJwt(token);
 
-        return AccountApiRepository.getBy(
-          new URLSearchParams({ userId: user.username }),
-          token
-        );
+        return AccountApiRepository.getBy(new URLSearchParams({}), token);
       })
       .then((accounts) => {
         if (!accounts.length) throw new Error(`No accounts found for user`);
